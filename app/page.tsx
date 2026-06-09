@@ -1,19 +1,10 @@
+import SiteHeader from "@/components/site-header";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <section className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
-        <nav className="flex items-center justify-between">
-          <div className="text-xl font-bold tracking-tight">HoopFind</div>
-
-          <div className="flex items-center gap-4 text-sm text-zinc-300">
-            <a href="/games" className="hover:text-white">
-              Browse Games
-            </a>
-            <a href="/dashboard" className="hover:text-white">
-              Dashboard
-            </a>
-          </div>
-        </nav>
+        <SiteHeader />
 
         <div className="flex flex-1 items-center">
           <div className="max-w-3xl">
