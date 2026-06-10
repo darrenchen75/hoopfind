@@ -1,13 +1,10 @@
 import Link from "next/link";
-
 import SiteHeader from "@/components/site-header";
 
 const gameTypes = ["3v3", "4v4", "5v5", "Open Run"];
 const competitivenessLevels = ["Casual", "Competitive", "Highly Competitive"];
 const skillLevels = ["Beginner", "Intermediate", "Advanced", "Elite"];
-
-const fieldClasses =
-  "w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-orange-500 focus:outline-none";
+const fieldClasses = "w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-orange-500 focus:outline-none";
 const labelClasses = "mb-2 block text-sm font-medium text-zinc-300";
 
 export default function NewGamePage() {

@@ -1,11 +1,9 @@
 import Link from "next/link";
-
 import GameCard from "@/components/game-card";
 import SiteHeader from "@/components/site-header";
 import { fakeGames } from "@/lib/fake-data";
 
 const playerName = "Darren";
-
 const recommendedGames = fakeGames.slice(0, 3);
 const joinedGames = fakeGames.slice(0, 2);
 

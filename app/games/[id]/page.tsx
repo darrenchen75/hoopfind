@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
 import SiteHeader from "@/components/site-header";
 import { fakeGames } from "@/lib/fake-data";
 
