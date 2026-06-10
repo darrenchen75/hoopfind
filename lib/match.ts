@@ -11,7 +11,6 @@ export interface MatchResult {
   reason: string;
 }
 
-// Lower number = more casual, higher number = more skilled.
 const skillRank: Record<SkillLevel, number> = {
   Beginner: 1,
   Intermediate: 2,

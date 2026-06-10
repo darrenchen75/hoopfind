@@ -12,7 +12,6 @@ export interface SkillRange {
 export interface PlayerProfile {
   displayName: string;
   area: string;
-  // Optional so the matcher can flag an incomplete profile.
   skillLevel?: SkillLevel;
 }
 
