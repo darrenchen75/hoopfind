@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import MatchLabel from "@/components/match-label";
 import SiteHeader from "@/components/site-header";
-import { fakeGames } from "@/lib/fake-data";
+import { fakeGames, fakePlayer } from "@/lib/fake-data";
+import { getMatch } from "@/lib/match";
 
 export default async function GameDetailPage({
   params,
@@ -14,6 +16,8 @@ export default async function GameDetailPage({
   if (!game) {
     notFound();
   }
+
+  const match = getMatch(fakePlayer, game);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -44,6 +48,13 @@ export default async function GameDetailPage({
           <p className="mt-2 text-base font-medium text-orange-400">
             {game.dateTimeDisplay}
           </p>
+
+          <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+              Your match
+            </p>
+            <MatchLabel match={match} />
+          </div>
 
           <dl className="mt-10 grid gap-x-6 gap-y-6 border-t border-zinc-800 pt-8 sm:grid-cols-2">
             <div>

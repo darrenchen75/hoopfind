@@ -9,6 +9,12 @@ export interface SkillRange {
   max: SkillLevel;
 }
 
+export interface PlayerProfile {
+  displayName: string;
+  area: string;
+  skillLevel?: SkillLevel;
+}
+
 export interface PickupGame {
   id: string;
   title: string;
