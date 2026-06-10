@@ -11,22 +11,13 @@ export interface MatchResult {
   reason: string;
 }
 
-const skillRank: Record<SkillLevel, number> = {
-  Beginner: 1,
-  Intermediate: 2,
-  Advanced: 3,
-  Elite: 4,
-};
+const skillRank: Record<SkillLevel, number> = {Beginner: 1, Intermediate: 2, Advanced: 3, Elite: 4};
 
-export function getMatch(
-  player: PlayerProfile,
-  game: PickupGame,
-): MatchResult {
+export function getMatch(player: PlayerProfile, game: PickupGame): MatchResult {
   if (!player.skillLevel) {
     return {
       label: "Missing Profile Info",
-      reason:
-        "Add your skill level in your profile to see how well this game fits you.",
+      reason: "Add your skill level in your profile to see how well this game fits you.",
     };
   }
 
