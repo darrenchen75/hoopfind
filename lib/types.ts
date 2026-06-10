@@ -9,6 +9,13 @@ export interface SkillRange {
   max: SkillLevel;
 }
 
+export interface PlayerProfile {
+  displayName: string;
+  area: string;
+  // Optional so the matcher can flag an incomplete profile.
+  skillLevel?: SkillLevel;
+}
+
 export interface PickupGame {
   id: string;
   title: string;
