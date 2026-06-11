@@ -37,18 +37,16 @@ const emptyProfile: ProfileFields = {
 
 export default function ProfileForm() {
   const router = useRouter();
-  const supabase = createClient();
-
   const [status, setStatus] = useState<"loading" | "unauthenticated" | "ready">("loading");
   const [userId, setUserId] = useState<string | null>(null);
   const [fields, setFields] = useState<ProfileFields>(emptyProfile);
-
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
+    const supabase = createClient();
 
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -94,7 +92,7 @@ export default function ProfileForm() {
     return () => {
       active = false;
     };
-  }, [supabase]);
+  }, []);
 
   function update<K extends keyof ProfileFields>(key: K, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }));
@@ -107,6 +105,8 @@ export default function ProfileForm() {
     setSaving(true);
     setError(null);
     setSuccess(null);
+
+    const supabase = createClient();
 
     const { error } = await supabase.from("profiles").upsert({
       id: userId,
