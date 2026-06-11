@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AttendanceList from "@/components/attendance-list";
 import MatchLabel from "@/components/match-label";
 import SiteHeader from "@/components/site-header";
-import { fakeGames, fakePlayer } from "@/lib/fake-data";
+import { fakeAttendance, fakeGames, fakePlayer } from "@/lib/fake-data";
 import { getMatch } from "@/lib/match";
 
 export default async function GameDetailPage({
@@ -18,6 +19,7 @@ export default async function GameDetailPage({
   }
 
   const match = getMatch(fakePlayer, game);
+  const joinedPlayers = fakeAttendance[game.id] ?? [];
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -89,6 +91,11 @@ export default async function GameDetailPage({
             <p className="mt-2 text-base leading-7 text-zinc-300">
               {game.notes}
             </p>
+          </div>
+
+          <div className="mt-8 border-t border-zinc-800 pt-8">
+            <h2 className="text-sm text-zinc-500">Joined players</h2>
+            <AttendanceList players={joinedPlayers} />
           </div>
         </div>
       </section>

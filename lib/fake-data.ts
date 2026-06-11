@@ -1,4 +1,4 @@
-import type { PickupGame, PlayerProfile } from "@/lib/types";
+import type { JoinedPlayer, PickupGame, PlayerProfile } from "@/lib/types";
 
 export const fakePlayer: PlayerProfile = {
   displayName: "Darren",
@@ -60,3 +60,27 @@ export const fakeGames: PickupGame[] = [
     notes: "Quick half-court 3v3 games on lunch break. In and out within an hour.",
   },
 ];
+
+export const fakeAttendance: Record<string, JoinedPlayer[]> = {
+  "1": [
+    { name: "Darren", status: "Joined" },
+    { name: "Marcus", status: "Attended" },
+    { name: "Priya", status: "Attended" },
+    { name: "Sam", status: "Missed" },
+  ],
+  "2": [
+    { name: "Jordan", status: "Joined" },
+    { name: "Lena", status: "Joined" },
+    { name: "Tariq", status: "Attended" },
+  ],
+  "3": [
+    { name: "Andre", status: "Attended" },
+    { name: "Chris", status: "Attended" },
+    { name: "Devin", status: "Missed" },
+    { name: "Marcus", status: "Joined" },
+  ],
+  "4": [
+    { name: "Nina", status: "Joined" },
+    { name: "Owen", status: "Attended" },
+  ],
+};
