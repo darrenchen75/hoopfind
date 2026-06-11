@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HoopFind
+Skill-based pickup basketball discovery. HoopFind helps players find pickup
+runs that actually match their skill level, competitiveness, location, and
+availability; rather than just going to the nearest court and hoping for the best.
 
-## Getting Started
+## Tech stack
+- **Next.js 16** (App Router)
+- **React 19**
+- **TypeScript**
+- **Tailwind CSS 4**
 
-First, run the development server:
+## Prototype features
+The current prototype is a clickable, frontend-only walkthrough:
+- **Home (`/`)** — landing page with overview and calls to action.
+- **Browse games (`/games`)** — grid of public pickup runs.
+- **Game detail (`/games/[id]`)** — run details, a skill-match label, and a
+  joined-players / attendance preview.
+- **Dashboard (`/dashboard`)** — recommended and joined games for a sample player.
+- **Create game (`/games/new`)** — static form for posting a run.
+- **Profile setup (`/profile/setup`)** — static form for building a player profile.
+
+## Local setup
+Requires Node.js 20+.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Other scripts:
+```bash
+npm run build
+npm start
+npm run lint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Milestone 1 note
+This is a **static prototype**. All content is driven by fake/static data
+(`lib/fake-data.ts`) and the forms do not submit anywhere. There is no auth,
+database, or server-side persistence yet. Those will arrive in later milestones.
