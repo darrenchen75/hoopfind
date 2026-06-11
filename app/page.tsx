@@ -1,3 +1,4 @@
+import Link from "next/link";
 import SiteHeader from "@/components/site-header";
 
 export default function Home() {
@@ -23,19 +24,19 @@ export default function Home() {
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-              <a
+              <Link
                 href="/games"
                 className="rounded-full bg-orange-500 px-6 py-3 text-center font-semibold text-white transition hover:bg-orange-400"
               >
                 Browse public games
-              </a>
+              </Link>
 
-              <a
+              <Link
                 href="/profile/setup"
                 className="rounded-full border border-zinc-700 px-6 py-3 text-center font-semibold text-zinc-200 transition hover:border-zinc-400 hover:text-white"
               >
                 Create player profile
-              </a>
+              </Link>
             </div>
           </div>
         </div>
