@@ -35,10 +35,13 @@ const copy: Record<
   },
 };
 
-export default function AuthForm({ mode }: { mode: AuthMode }) {
+export default function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirectTo?: string }) {
   const router = useRouter();
   const text = copy[mode];
-
+  const destination =
+    redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")
+      ? redirectTo
+      : "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -84,7 +87,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(destination);
   }
 
   return (
