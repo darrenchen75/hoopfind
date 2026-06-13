@@ -1,8 +1,10 @@
 import GameCard from "@/components/game-card";
 import SiteHeader from "@/components/site-header";
-import { fakeGames } from "@/lib/fake-data";
+import { fetchPublicGames } from "@/lib/games";
 
-export default function GamesPage() {
+export default async function GamesPage() {
+  const { games, error } = await fetchPublicGames();
+
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <section className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
@@ -22,11 +24,21 @@ export default function GamesPage() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {fakeGames.map((game) => (
-            <GameCard key={game.id} game={game} />
-          ))}
-        </div>
+        {error ? (
+          <p className="mt-10 rounded-xl border border-red-900 bg-red-950/50 p-6 text-zinc-300">
+            We couldn&apos;t load games right now. Please try again later.
+          </p>
+        ) : games.length === 0 ? (
+          <p className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 text-zinc-300">
+            No public games yet. Be the first to post a run.
+          </p>
+        ) : (
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {games.map((game) => (
+              <GameCard key={game.id} game={game} />
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );
