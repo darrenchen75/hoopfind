@@ -1,13 +1,14 @@
 import Link from "next/link";
 import GameCard from "@/components/game-card";
 import SiteHeader from "@/components/site-header";
-import { fakeGames } from "@/lib/fake-data";
+import { fetchPublicGames } from "@/lib/games";
+import type { PickupGame } from "@/lib/types";
 
 const playerName = "Darren";
-const recommendedGames = fakeGames.slice(0, 3);
-const joinedGames = fakeGames.slice(0, 2);
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const { games: recommendedGames, error } = await fetchPublicGames(3);
+
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <section className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
@@ -34,41 +35,38 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <DashboardSection
-          title="Recommended games"
-          subtitle="Runs that fit your skill level and schedule."
-          games={recommendedGames}
-        />
+        <div className="mt-12">
+          <h2 className="text-2xl font-semibold tracking-tight">Recommended games</h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            Runs that fit your skill level and schedule.
+          </p>
 
-        <DashboardSection
-          title="Joined games"
-          subtitle="Games you're already in on."
-          games={joinedGames}
-        />
+          {error ? (
+            <p className="mt-6 rounded-xl border border-red-900 bg-red-950/50 p-6 text-zinc-300">
+              We couldn&apos;t load games right now. Please try again later.
+            </p>
+          ) : recommendedGames.length === 0 ? (
+            <p className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 text-zinc-300">
+              No public games yet. Be the first to post a run.
+            </p>
+          ) : (
+            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {recommendedGames.map((game: PickupGame) => (
+                <GameCard key={game.id} game={game} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-12">
+          <h2 className="text-2xl font-semibold tracking-tight">Joined games</h2>
+          <p className="mt-1 text-sm text-zinc-400">Games you&apos;re already in on.</p>
+
+          <p className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 text-zinc-300">
+            You haven&apos;t joined any games yet. Browse public runs to find one.
+          </p>
+        </div>
       </section>
     </main>
-  );
-}
-
-function DashboardSection({
-  title,
-  subtitle,
-  games,
-}: {
-  title: string;
-  subtitle: string;
-  games: typeof fakeGames;
-}) {
-  return (
-    <div className="mt-12">
-      <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
-      <p className="mt-1 text-sm text-zinc-400">{subtitle}</p>
-
-      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {games.map((game) => (
-          <GameCard key={game.id} game={game} />
-        ))}
-      </div>
-    </div>
   );
 }

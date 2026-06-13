@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import AttendanceList from "@/components/attendance-list";
 import MatchLabel from "@/components/match-label";
 import SiteHeader from "@/components/site-header";
-import { fakeAttendance, fakeGames, fakePlayer } from "@/lib/fake-data";
+import { fakePlayer } from "@/lib/fake-data";
+import { fetchPublicGameById, isUuid } from "@/lib/games";
 import { getMatch } from "@/lib/match";
+import type { JoinedPlayer } from "@/lib/types";
 
 export default async function GameDetailPage({
   params,
@@ -12,14 +14,19 @@ export default async function GameDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const game = fakeGames.find((g) => g.id === id);
+
+  if (!isUuid(id)) {
+    notFound();
+  }
+
+  const game = await fetchPublicGameById(id);
 
   if (!game) {
     notFound();
   }
 
   const match = getMatch(fakePlayer, game);
-  const joinedPlayers = fakeAttendance[game.id] ?? [];
+  const joinedPlayers: JoinedPlayer[] = [];
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
