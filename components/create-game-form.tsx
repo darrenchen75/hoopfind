@@ -87,8 +87,8 @@ export default function CreateGameForm() {
     }
 
     const maxPlayers = Number(fields.max_players);
-    if (!Number.isFinite(maxPlayers) || maxPlayers <= 0) {
-      return "Max players must be greater than zero.";
+    if (!Number.isInteger(maxPlayers) || maxPlayers <= 0) {
+      return "Max players must be a positive whole number.";
     }
 
     if (skillLevels.indexOf(fields.max_skill_level) < skillLevels.indexOf(fields.min_skill_level)) {
@@ -264,6 +264,7 @@ export default function CreateGameForm() {
             id="maxPlayers"
             type="number"
             min={2}
+            step={1}
             placeholder="10"
             value={fields.max_players}
             onChange={(event) => update("max_players", event.target.value)}
