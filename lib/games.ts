@@ -70,6 +70,7 @@ export async function fetchPublicGames(
     .from("games")
     .select(GAME_COLUMNS)
     .eq("is_public", true)
+    .gte("starts_at", new Date().toISOString())
     .order("starts_at", { ascending: true });
 
   if (limit) {

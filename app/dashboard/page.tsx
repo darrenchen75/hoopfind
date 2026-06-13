@@ -2,7 +2,6 @@ import Link from "next/link";
 import GameCard from "@/components/game-card";
 import SiteHeader from "@/components/site-header";
 import { fetchPublicGames } from "@/lib/games";
-import type { PickupGame } from "@/lib/types";
 
 const playerName = "Darren";
 
@@ -23,7 +22,7 @@ export default async function DashboardPage() {
               Welcome back, {playerName}
             </h1>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-zinc-300">
-              Here are runs picked for you and the games you&apos;ve joined.
+              Browse upcoming public runs and the games you&apos;ve joined.
             </p>
           </div>
 
@@ -36,9 +35,9 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-12">
-          <h2 className="text-2xl font-semibold tracking-tight">Recommended games</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Upcoming games</h2>
           <p className="mt-1 text-sm text-zinc-400">
-            Runs that fit your skill level and schedule.
+            The next public pickup runs available on HoopFind.
           </p>
 
           {error ? (
@@ -51,7 +50,7 @@ export default async function DashboardPage() {
             </p>
           ) : (
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {recommendedGames.map((game: PickupGame) => (
+              {recommendedGames.map((game) => (
                 <GameCard key={game.id} game={game} />
               ))}
             </div>
