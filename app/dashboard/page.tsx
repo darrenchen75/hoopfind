@@ -2,7 +2,7 @@ import Link from "next/link";
 import GameCard from "@/components/game-card";
 import SiteHeader from "@/components/site-header";
 import { fetchPublicGames } from "@/lib/games";
-import { getCurrentProfile } from "@/lib/profiles";
+import { getCurrentProfile, isProfileComplete } from "@/lib/profiles";
 
 export default async function DashboardPage() {
   const { games: recommendedGames, error } = await fetchPublicGames(3);
@@ -35,16 +35,16 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {!profile?.skillLevel && (
+        {!isProfileComplete(profile) && (
           <p className="mt-8 rounded-xl border border-orange-500/30 bg-orange-500/10 p-4 text-sm text-zinc-300">
-            Add your skill level in your{" "}
+            Complete your{" "}
             <Link
               href="/profile/setup"
               className="font-semibold text-orange-400 hover:text-orange-300"
             >
               player profile
             </Link>{" "}
-            to get better game matching.
+            to improve game matching.
           </p>
         )}
 
