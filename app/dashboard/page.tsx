@@ -35,9 +35,9 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {!profile && (
+        {!profile?.skillLevel && (
           <p className="mt-8 rounded-xl border border-orange-500/30 bg-orange-500/10 p-4 text-sm text-zinc-300">
-            Complete your{" "}
+            Add your skill level in your{" "}
             <Link
               href="/profile/setup"
               className="font-semibold text-orange-400 hover:text-orange-300"
