@@ -2,11 +2,12 @@ import Link from "next/link";
 import GameCard from "@/components/game-card";
 import SiteHeader from "@/components/site-header";
 import { fetchPublicGames } from "@/lib/games";
-
-const playerName = "Darren";
+import { getCurrentProfile, isProfileComplete } from "@/lib/profiles";
 
 export default async function DashboardPage() {
   const { games: recommendedGames, error } = await fetchPublicGames(3);
+  const profile = await getCurrentProfile();
+  const displayName = profile?.displayName;
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -19,7 +20,7 @@ export default async function DashboardPage() {
               Dashboard
             </p>
             <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl">
-              Welcome back, {playerName}
+              Welcome back{displayName ? `, ${displayName}` : ""}
             </h1>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-zinc-300">
               Browse upcoming public runs and the games you&apos;ve joined.
@@ -33,6 +34,19 @@ export default async function DashboardPage() {
             Create a game
           </Link>
         </div>
+
+        {!isProfileComplete(profile) && (
+          <p className="mt-8 rounded-xl border border-orange-500/30 bg-orange-500/10 p-4 text-sm text-zinc-300">
+            Complete your{" "}
+            <Link
+              href="/profile/setup"
+              className="font-semibold text-orange-400 hover:text-orange-300"
+            >
+              player profile
+            </Link>{" "}
+            to improve game matching.
+          </p>
+        )}
 
         <div className="mt-12">
           <h2 className="text-2xl font-semibold tracking-tight">Upcoming games</h2>

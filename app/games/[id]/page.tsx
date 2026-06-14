@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import AttendanceList from "@/components/attendance-list";
 import MatchLabel from "@/components/match-label";
 import SiteHeader from "@/components/site-header";
-import { fakePlayer } from "@/lib/fake-data";
 import { fetchPublicGameById, isUuid } from "@/lib/games";
 import { getMatch } from "@/lib/match";
+import { getCurrentProfile } from "@/lib/profiles";
 import type { JoinedPlayer } from "@/lib/types";
 
 export default async function GameDetailPage({
@@ -25,7 +25,8 @@ export default async function GameDetailPage({
     notFound();
   }
 
-  const match = getMatch(fakePlayer, game);
+  const profile = await getCurrentProfile();
+  const match = getMatch(profile, game);
   const joinedPlayers: JoinedPlayer[] = [];
 
   return (

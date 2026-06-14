@@ -27,11 +27,11 @@ type ProfileFields = {
 const emptyProfile: ProfileFields = {
   display_name: "",
   area: "",
-  skill_level: skillLevels[0],
-  primary_position: positions[0],
-  play_style: playStyles[0],
-  competitiveness: competitivenessLevels[0],
-  availability: availabilityOptions[0],
+  skill_level: "",
+  primary_position: "",
+  play_style: "",
+  competitiveness: "",
+  availability: "",
   max_travel_distance: "",
 };
 
@@ -74,11 +74,11 @@ export default function ProfileForm() {
         setFields({
           display_name: profile.display_name ?? "",
           area: profile.area ?? "",
-          skill_level: profile.skill_level ?? skillLevels[0],
-          primary_position: profile.primary_position ?? positions[0],
-          play_style: profile.play_style ?? playStyles[0],
-          competitiveness: profile.competitiveness ?? competitivenessLevels[0],
-          availability: profile.availability ?? availabilityOptions[0],
+          skill_level: profile.skill_level ?? "",
+          primary_position: profile.primary_position ?? "",
+          play_style: profile.play_style ?? "",
+          competitiveness: profile.competitiveness ?? "",
+          availability: profile.availability ?? "",
           max_travel_distance:
             profile.max_travel_distance === null ? "" : String(profile.max_travel_distance),
         });
@@ -192,6 +192,9 @@ export default function ProfileForm() {
             onChange={(event) => update("skill_level", event.target.value)}
             className={fieldClasses}
           >
+            <option value="" disabled>
+              Select skill level
+            </option>
             {skillLevels.map((level) => (
               <option key={level} value={level}>
                 {level}
@@ -210,6 +213,9 @@ export default function ProfileForm() {
             onChange={(event) => update("primary_position", event.target.value)}
             className={fieldClasses}
           >
+            <option value="" disabled>
+              Select position
+            </option>
             {positions.map((position) => (
               <option key={position} value={position}>
                 {position}
@@ -230,6 +236,9 @@ export default function ProfileForm() {
             onChange={(event) => update("play_style", event.target.value)}
             className={fieldClasses}
           >
+            <option value="" disabled>
+              Select play style
+            </option>
             {playStyles.map((style) => (
               <option key={style} value={style}>
                 {style}
@@ -248,6 +257,9 @@ export default function ProfileForm() {
             onChange={(event) => update("competitiveness", event.target.value)}
             className={fieldClasses}
           >
+            <option value="" disabled>
+              Select competitiveness
+            </option>
             {competitivenessLevels.map((level) => (
               <option key={level} value={level}>
                 {level}
@@ -268,6 +280,9 @@ export default function ProfileForm() {
             onChange={(event) => update("availability", event.target.value)}
             className={fieldClasses}
           >
+            <option value="" disabled>
+              Select availability
+            </option>
             {availabilityOptions.map((option) => (
               <option key={option} value={option}>
                 {option}

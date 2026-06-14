@@ -13,6 +13,14 @@ export interface PlayerProfile {
   skillLevel?: SkillLevel;
 }
 
+export interface UserProfile extends PlayerProfile {
+  primaryPosition: string;
+  playStyle: string;
+  competitiveness: string;
+  availability: string;
+  maxTravelDistance: number | null;
+}
+
 export type AttendanceStatus = "Joined" | "Attended" | "Missed";
 
 export interface JoinedPlayer {
