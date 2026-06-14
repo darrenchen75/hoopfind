@@ -1,10 +1,4 @@
-import type { JoinedPlayer, PickupGame, PlayerProfile } from "@/lib/types";
-
-export const fakePlayer: PlayerProfile = {
-  displayName: "Darren",
-  area: "North Side, Chicago",
-  skillLevel: "Advanced",
-};
+import type { JoinedPlayer, PickupGame } from "@/lib/types";
 
 export const fakeGames: PickupGame[] = [
   {
