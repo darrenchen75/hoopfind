@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import AttendanceList from "@/components/attendance-list";
+import GameParticipationButton from "@/components/game-participation-button";
 import MatchLabel from "@/components/match-label";
 import SiteHeader from "@/components/site-header";
-import { fetchPublicGameById, isUuid } from "@/lib/games";
+import { fetchPublicGameById, isGameStarted, isUuid } from "@/lib/games";
 import { getMatch } from "@/lib/match";
+import { getGameParticipation } from "@/lib/participation";
 import { getCurrentProfile } from "@/lib/profiles";
-import type { JoinedPlayer } from "@/lib/types";
 
 export default async function GameDetailPage({
   params,
@@ -27,7 +27,8 @@ export default async function GameDetailPage({
 
   const profile = await getCurrentProfile();
   const match = getMatch(profile, game);
-  const joinedPlayers: JoinedPlayer[] = [];
+  const participation = await getGameParticipation(id);
+  const hasStarted = isGameStarted(game.startsAt);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -66,6 +67,18 @@ export default async function GameDetailPage({
             <MatchLabel match={match} />
           </div>
 
+          <div className="mt-8">
+            <GameParticipationButton
+              gameId={game.id}
+              isAuthenticated={participation.isAuthenticated}
+              status={participation.status}
+              participationError={participation.error}
+              currentPlayers={game.currentPlayers}
+              maxPlayers={game.maxPlayers}
+              hasStarted={hasStarted}
+            />
+          </div>
+
           <dl className="mt-10 grid gap-x-6 gap-y-6 border-t border-zinc-800 pt-8 sm:grid-cols-2">
             <div>
               <dt className="text-sm text-zinc-500">Players</dt>
@@ -99,11 +112,6 @@ export default async function GameDetailPage({
             <p className="mt-2 text-base leading-7 text-zinc-300">
               {game.notes}
             </p>
-          </div>
-
-          <div className="mt-8 border-t border-zinc-800 pt-8">
-            <h2 className="text-sm text-zinc-500">Joined players</h2>
-            <AttendanceList players={joinedPlayers} />
           </div>
         </div>
       </section>
