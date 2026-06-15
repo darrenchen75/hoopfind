@@ -61,10 +61,28 @@ create function public.leave_game(target_game_id uuid)
 as $$
 declare
   current_user_id uuid := auth.uid();
+  target_game     public.games%rowtype;
   deleted_count   integer;
 begin
   if current_user_id is null then
     raise exception 'Authentication required';
+  end if;
+
+  -- Lock the game row so joins and leaves for the same game serialize, keeping
+  -- capacity checks consistent with concurrent participation changes.
+  select * into target_game
+  from public.games
+  where id = target_game_id
+  for update;
+
+  if not found then
+    raise exception 'Game not found';
+  end if;
+
+  -- Once the game has started, attendance is fixed; leaving could erase a record
+  -- the creator needs to mark as attended/missed.
+  if target_game.starts_at <= now() then
+    raise exception 'You can no longer leave after the game has started';
   end if;
 
   delete from public.game_participants
