@@ -33,6 +33,7 @@ export interface PickupGame {
   title: string;
   locationName: string;
   area: string;
+  startsAt: string;
   dateTimeDisplay: string;
   gameType: GameType;
   currentPlayers: number;

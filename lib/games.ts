@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { fetchParticipantCounts } from "@/lib/participation";
 import type {
   Competitiveness,
   GameType,
@@ -28,6 +29,10 @@ export function isUuid(value: string): boolean {
   return UUID_REGEX.test(value);
 }
 
+export function isGameStarted(startsAt: string): boolean {
+  return new Date(startsAt).getTime() <= Date.now();
+}
+
 function formatStartsAt(startsAt: string): string {
   const date = new Date(startsAt);
   const datePart = date.toLocaleDateString("en-US", {
@@ -42,15 +47,16 @@ function formatStartsAt(startsAt: string): string {
   return `${datePart} · ${timePart}`;
 }
 
-function mapGameRow(row: GameRow): PickupGame {
+function mapGameRow(row: GameRow, currentPlayers = 0): PickupGame {
   return {
     id: row.id,
     title: row.title,
     locationName: row.location_name,
     area: row.area,
+    startsAt: row.starts_at,
     dateTimeDisplay: formatStartsAt(row.starts_at),
     gameType: row.game_type as GameType,
-    currentPlayers: 0,
+    currentPlayers,
     maxPlayers: row.max_players,
     competitiveness: row.competitiveness as Competitiveness,
     skillRange: {
@@ -83,7 +89,14 @@ export async function fetchPublicGames(
     return { games: [], error: true };
   }
 
-  return { games: (data as GameRow[]).map(mapGameRow), error: false };
+  const counts = await fetchParticipantCounts();
+
+  return {
+    games: (data as GameRow[]).map((row) =>
+      mapGameRow(row, counts.get(row.id) ?? 0),
+    ),
+    error: false,
+  };
 }
 
 export async function fetchPublicGameById(
@@ -102,5 +115,8 @@ export async function fetchPublicGameById(
     return null;
   }
 
-  return mapGameRow(data as GameRow);
+  const row = data as GameRow;
+  const counts = await fetchParticipantCounts();
+
+  return mapGameRow(row, counts.get(row.id) ?? 0);
 }
