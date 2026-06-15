@@ -12,7 +12,11 @@ create index game_participants_user_id_idx
   on public.game_participants (user_id);
 
 alter table public.game_participants enable row level security;
-grant select, insert, update, delete on public.game_participants to authenticated;
+
+revoke all on public.game_participants from anon;
+revoke all on public.game_participants from authenticated;
+grant select, insert, delete on public.game_participants to authenticated;
+grant update (status) on public.game_participants to authenticated;
 
 create policy "Participants visible on public or owned games"
   on public.game_participants
@@ -46,7 +50,7 @@ create policy "Users can leave games they joined"
   on public.game_participants
   for delete
   to authenticated
-  using (auth.uid() = user_id);
+  using (auth.uid() = user_id and status = 'joined');
 
 create policy "Game creators can update participant status"
   on public.game_participants
