@@ -4,6 +4,19 @@ export type ParticipationStatus = "joined" | "attended" | "missed";
 export interface GameParticipation {
   isAuthenticated: boolean;
   status: ParticipationStatus | null;
+  error: boolean;
+}
+
+const PARTICIPATION_STATUSES: ParticipationStatus[] = [
+  "joined",
+  "attended",
+  "missed",
+];
+
+function toParticipationStatus(value: unknown): ParticipationStatus | null {
+  return PARTICIPATION_STATUSES.includes(value as ParticipationStatus)
+    ? (value as ParticipationStatus)
+    : null;
 }
 
 type ParticipantCountRow = {
@@ -36,18 +49,23 @@ export async function getGameParticipation(
   const userId = claimsData?.claims?.sub;
 
   if (!userId) {
-    return { isAuthenticated: false, status: null };
+    return { isAuthenticated: false, status: null, error: false };
   }
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("game_participants")
     .select("status")
     .eq("game_id", gameId)
     .eq("user_id", userId)
     .maybeSingle();
 
+  if (error) {
+    return { isAuthenticated: true, status: null, error: true };
+  }
+
   return {
     isAuthenticated: true,
-    status: (data?.status as ParticipationStatus | undefined) ?? null,
+    status: toParticipationStatus(data?.status),
+    error: false,
   };
 }

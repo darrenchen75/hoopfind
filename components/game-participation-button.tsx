@@ -19,6 +19,7 @@ type Props = {
   gameId: string;
   isAuthenticated: boolean;
   status: ParticipationStatus | null;
+  participationError: boolean;
   currentPlayers: number;
   maxPlayers: number;
   hasStarted: boolean;
@@ -28,6 +29,7 @@ export default function GameParticipationButton({
   gameId,
   isAuthenticated,
   status,
+  participationError,
   currentPlayers,
   maxPlayers,
   hasStarted,
@@ -66,6 +68,14 @@ export default function GameParticipationButton({
       >
         Log in to join
       </Link>
+    );
+  }
+
+  if (participationError) {
+    return (
+      <p className="text-base text-zinc-400">
+        We couldn&rsquo;t load your participation status. Refresh and try again.
+      </p>
     );
   }
 

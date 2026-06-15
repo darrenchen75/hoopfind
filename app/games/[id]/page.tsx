@@ -72,6 +72,7 @@ export default async function GameDetailPage({
               gameId={game.id}
               isAuthenticated={participation.isAuthenticated}
               status={participation.status}
+              participationError={participation.error}
               currentPlayers={game.currentPlayers}
               maxPlayers={game.maxPlayers}
               hasStarted={hasStarted}
