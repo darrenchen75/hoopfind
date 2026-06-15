@@ -68,8 +68,6 @@ begin
     raise exception 'Authentication required';
   end if;
 
-  -- Lock the game row so joins and leaves for the same game serialize, keeping
-  -- capacity checks consistent with concurrent participation changes.
   select * into target_game
   from public.games
   where id = target_game_id
@@ -79,8 +77,6 @@ begin
     raise exception 'Game not found';
   end if;
 
-  -- Once the game has started, attendance is fixed; leaving could erase a record
-  -- the creator needs to mark as attended/missed.
   if target_game.starts_at <= now() then
     raise exception 'You can no longer leave after the game has started';
   end if;
