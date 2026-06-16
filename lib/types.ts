@@ -30,6 +30,7 @@ export interface JoinedPlayer {
 
 export interface PickupGame {
   id: string;
+  creatorId: string;
   title: string;
   locationName: string;
   area: string;

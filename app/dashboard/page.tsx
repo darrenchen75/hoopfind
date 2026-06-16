@@ -4,6 +4,7 @@ import SiteHeader from "@/components/site-header";
 import {
   fetchCurrentUserHostedGames,
   fetchCurrentUserJoinedGames,
+  fetchCurrentUserPastHostedGames,
   fetchPublicGames,
 } from "@/lib/games";
 import { getCurrentProfile, isProfileComplete } from "@/lib/profiles";
@@ -12,6 +13,8 @@ export default async function DashboardPage() {
   const { games: recommendedGames, error } = await fetchPublicGames(3);
   const { games: joinedGames, error: joinedError } = await fetchCurrentUserJoinedGames();
   const { games: hostedGames, error: hostedError } = await fetchCurrentUserHostedGames();
+  const { games: pastHostedGames, error: pastHostedError } =
+    await fetchCurrentUserPastHostedGames();
   const profile = await getCurrentProfile();
   const displayName = profile?.displayName;
 
@@ -134,6 +137,27 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+
+        {(pastHostedError || pastHostedGames.length > 0) && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-semibold tracking-tight">Past hosted games</h2>
+            <p className="mt-1 text-sm text-zinc-400">
+              Review completed runs and manage attendance.
+            </p>
+
+            {pastHostedError ? (
+              <p className="mt-6 rounded-xl border border-red-900 bg-red-950/50 p-6 text-zinc-300">
+                We couldn&apos;t load your past hosted games right now. Please try again later.
+              </p>
+            ) : (
+              <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {pastHostedGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </section>
     </main>
   );

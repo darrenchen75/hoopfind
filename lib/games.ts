@@ -7,10 +7,11 @@ import type {
   SkillLevel,
 } from "@/lib/types";
 
-const GAME_COLUMNS = "id, title, location_name, area, starts_at, game_type, max_players, competitiveness, min_skill_level, max_skill_level, notes";
+const GAME_COLUMNS = "id, creator_id, title, location_name, area, starts_at, game_type, max_players, competitiveness, min_skill_level, max_skill_level, notes";
 
 type GameRow = {
   id: string;
+  creator_id: string;
   title: string;
   location_name: string;
   area: string;
@@ -50,6 +51,7 @@ function formatStartsAt(startsAt: string): string {
 function mapGameRow(row: GameRow, currentPlayers = 0): PickupGame {
   return {
     id: row.id,
+    creatorId: row.creator_id,
     title: row.title,
     locationName: row.location_name,
     area: row.area,
@@ -159,6 +161,46 @@ export async function fetchCurrentUserHostedGames(): Promise<{
     .eq("creator_id", userId)
     .gte("starts_at", new Date().toISOString())
     .order("starts_at", { ascending: true });
+
+  if (error) {
+    return { games: [], error: true };
+  }
+
+  const counts = await fetchParticipantCounts();
+
+  return {
+    games: (data as GameRow[]).map((row) =>
+      mapGameRow(row, counts.get(row.id) ?? 0),
+    ),
+    error: false,
+  };
+}
+
+// The user's 6 most recent past games they created, for attendance review.
+export async function fetchCurrentUserPastHostedGames(): Promise<{
+  games: PickupGame[];
+  error: boolean;
+}> {
+  const supabase = await createClient();
+  const { data: claimsData, error: claimsError } =
+    await supabase.auth.getClaims();
+
+  if (claimsError) {
+    return { games: [], error: true };
+  }
+
+  const userId = claimsData?.claims?.sub;
+  if (!userId) {
+    return { games: [], error: false };
+  }
+
+  const { data, error } = await supabase
+    .from("games")
+    .select(GAME_COLUMNS)
+    .eq("creator_id", userId)
+    .lt("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: false })
+    .limit(6);
 
   if (error) {
     return { games: [], error: true };

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 export type ParticipationStatus = "joined" | "attended" | "missed";
 export interface GameParticipation {
   isAuthenticated: boolean;
+  userId: string | null;
   status: ParticipationStatus | null;
   error: boolean;
 }
@@ -78,7 +79,7 @@ export async function getGameParticipation(
   const userId = claimsData?.claims?.sub;
 
   if (!userId) {
-    return { isAuthenticated: false, status: null, error: false };
+    return { isAuthenticated: false, userId: null, status: null, error: false };
   }
 
   const { data, error } = await supabase
@@ -89,11 +90,12 @@ export async function getGameParticipation(
     .maybeSingle();
 
   if (error) {
-    return { isAuthenticated: true, status: null, error: true };
+    return { isAuthenticated: true, userId, status: null, error: true };
   }
 
   return {
     isAuthenticated: true,
+    userId,
     status: toParticipationStatus(data?.status),
     error: false,
   };

@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import GameParticipationButton from "@/components/game-participation-button";
+import GameRoster from "@/components/game-roster";
+import HostAttendanceManager from "@/components/host-attendance-manager";
 import MatchLabel from "@/components/match-label";
 import SiteHeader from "@/components/site-header";
 import { fetchPublicGameById, isGameStarted, isUuid } from "@/lib/games";
 import { getMatch } from "@/lib/match";
 import { getGameParticipation } from "@/lib/participation";
 import { getCurrentProfile } from "@/lib/profiles";
+import { fetchGameRoster, fetchHostGameParticipants } from "@/lib/roster";
 
 export default async function GameDetailPage({
   params,
@@ -29,6 +32,20 @@ export default async function GameDetailPage({
   const match = getMatch(profile, game);
   const participation = await getGameParticipation(id);
   const hasStarted = isGameStarted(game.startsAt);
+  const isCreator =
+    !!participation.userId && participation.userId === game.creatorId;
+  const rosterAccess = !participation.isAuthenticated
+    ? "loggedOut"
+    : isCreator || participation.status !== null
+      ? "authorized"
+      : "notJoined";
+  const { roster, error: rosterError } =
+    rosterAccess === "authorized"
+      ? await fetchGameRoster(id)
+      : { roster: [], error: false };
+  const host = isCreator
+    ? await fetchHostGameParticipants(id)
+    : { participants: [], error: false };
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -113,6 +130,25 @@ export default async function GameDetailPage({
               {game.notes}
             </p>
           </div>
+
+          <div className="mt-8 border-t border-zinc-800 pt-8">
+            <h2 className="text-lg font-semibold tracking-tight">Player roster</h2>
+            <GameRoster access={rosterAccess} roster={roster} error={rosterError} />
+          </div>
+
+          {isCreator && (
+            <div className="mt-8 border-t border-zinc-800 pt-8">
+              <h2 className="text-lg font-semibold tracking-tight">
+                Attendance management
+              </h2>
+              <HostAttendanceManager
+                gameId={game.id}
+                hasStarted={hasStarted}
+                participants={host.participants}
+                error={host.error}
+              />
+            </div>
+          )}
         </div>
       </section>
     </main>
