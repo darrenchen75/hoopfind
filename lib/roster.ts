@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
-import type { ParticipationStatus } from "@/lib/participation";
+import {
+  toParticipationStatus,
+  type ParticipationStatus,
+} from "@/lib/participation";
 
 export interface RosterEntry {
   displayName: string;
@@ -26,14 +29,6 @@ type HostRow = {
   display_name: string | null;
   status: string;
 };
-
-const STATUSES: ParticipationStatus[] = ["joined", "attended", "missed"];
-
-function toStatus(value: unknown): ParticipationStatus | null {
-  return STATUSES.includes(value as ParticipationStatus)
-    ? (value as ParticipationStatus)
-    : null;
-}
 
 export async function fetchGameRoster(
   gameId: string,
@@ -69,7 +64,7 @@ export async function fetchHostGameParticipants(
   }
 
   const participants = ((data as HostRow[] | null) ?? []).flatMap((r) => {
-    const status = toStatus(r.status);
+    const status = toParticipationStatus(r.status);
     return status
       ? [{ userId: r.user_id, displayName: r.display_name ?? "Player", status }]
       : [];

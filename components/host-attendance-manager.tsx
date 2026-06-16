@@ -18,8 +18,6 @@ const statusLabel = {
   missed: "Missed",
 } as const;
 
-// Only surface known, safe database messages; anything else is generic so we
-// never leak SQL, codes, or raw error objects to the user.
 const SAFE_ERRORS = new Set([
   "Authentication required",
   "Game not found",
