@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { fetchParticipantCounts } from "@/lib/participation";
+import { fetchParticipantCounts, getJoinedGameIds } from "@/lib/participation";
 import type {
   Competitiveness,
   GameType,
@@ -84,6 +84,43 @@ export async function fetchPublicGames(
   }
 
   const { data, error } = await query;
+
+  if (error) {
+    return { games: [], error: true };
+  }
+
+  const counts = await fetchParticipantCounts();
+
+  return {
+    games: (data as GameRow[]).map((row) =>
+      mapGameRow(row, counts.get(row.id) ?? 0),
+    ),
+    error: false,
+  };
+}
+
+export async function fetchCurrentUserJoinedGames(): Promise<{
+  games: PickupGame[];
+  error: boolean;
+}> {
+  const { gameIds, error: participationError } = await getJoinedGameIds();
+
+  if (participationError) {
+    return { games: [], error: true };
+  }
+
+  if (gameIds.length === 0) {
+    return { games: [], error: false };
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("games")
+    .select(GAME_COLUMNS)
+    .in("id", gameIds)
+    .gte("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: true });
 
   if (error) {
     return { games: [], error: true };

@@ -41,6 +41,35 @@ export async function fetchParticipantCounts(): Promise<Map<string, number>> {
   return counts;
 }
 
+export interface JoinedGameIds {
+  isAuthenticated: boolean;
+  gameIds: string[];
+  error: boolean;
+}
+
+export async function getJoinedGameIds(): Promise<JoinedGameIds> {
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
+
+  if (!userId) {
+    return { isAuthenticated: false, gameIds: [], error: false };
+  }
+
+  const { data, error } = await supabase
+    .from("game_participants")
+    .select("game_id")
+    .eq("user_id", userId)
+    .eq("status", "joined");
+
+  if (error) {
+    return { isAuthenticated: true, gameIds: [], error: true };
+  }
+
+  const gameIds = (data as { game_id: string }[]).map((row) => row.game_id);
+  return { isAuthenticated: true, gameIds, error: false };
+}
+
 export async function getGameParticipation(
   gameId: string,
 ): Promise<GameParticipation> {
