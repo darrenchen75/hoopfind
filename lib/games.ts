@@ -136,6 +136,44 @@ export async function fetchCurrentUserJoinedGames(): Promise<{
   };
 }
 
+export async function fetchCurrentUserHostedGames(): Promise<{
+  games: PickupGame[];
+  error: boolean;
+}> {
+  const supabase = await createClient();
+  const { data: claimsData, error: claimsError } =
+    await supabase.auth.getClaims();
+
+  if (claimsError) {
+    return { games: [], error: true };
+  }
+
+  const userId = claimsData?.claims?.sub;
+  if (!userId) {
+    return { games: [], error: false };
+  }
+
+  const { data, error } = await supabase
+    .from("games")
+    .select(GAME_COLUMNS)
+    .eq("creator_id", userId)
+    .gte("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: true });
+
+  if (error) {
+    return { games: [], error: true };
+  }
+
+  const counts = await fetchParticipantCounts();
+
+  return {
+    games: (data as GameRow[]).map((row) =>
+      mapGameRow(row, counts.get(row.id) ?? 0),
+    ),
+    error: false,
+  };
+}
+
 export async function fetchPublicGameById(
   id: string,
 ): Promise<PickupGame | null> {
