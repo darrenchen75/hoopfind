@@ -34,11 +34,17 @@ export default async function GameDetailPage({
   const hasStarted = isGameStarted(game.startsAt);
   const isCreator =
     !!participation.userId && participation.userId === game.creatorId;
+  // Creator is authorized via ownership alone, so a failed participation lookup
+  // (error) only downgrades access for non-creators.
   const rosterAccess = !participation.isAuthenticated
     ? "loggedOut"
-    : isCreator || participation.status !== null
+    : isCreator
       ? "authorized"
-      : "notJoined";
+      : participation.error
+        ? "error"
+        : participation.status !== null
+          ? "authorized"
+          : "notJoined";
   const { roster, error: rosterError } =
     rosterAccess === "authorized"
       ? await fetchGameRoster(id)

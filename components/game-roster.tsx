@@ -1,7 +1,7 @@
 import type { RosterEntry } from "@/lib/roster";
 
 type Props = {
-  access: "loggedOut" | "notJoined" | "authorized";
+  access: "loggedOut" | "notJoined" | "authorized" | "error";
   roster: RosterEntry[];
   error: boolean;
 };
@@ -22,7 +22,10 @@ export default function GameRoster({ access, roster, error }: Props) {
     return <p className={note}>Log in and join this game to see who&apos;s playing.</p>;
   }
   if (access === "notJoined") {
-    return <p className={note}>Join this game to unlock the player roster.</p>;
+    return <p className={note}>Join this game to view the player roster.</p>;
+  }
+  if (access === "error") {
+    return <p className={note}>We couldn&apos;t determine your roster access. Refresh and try again.</p>;
   }
   if (error) {
     return <p className={note}>We couldn&apos;t load the roster right now. Refresh and try again.</p>;

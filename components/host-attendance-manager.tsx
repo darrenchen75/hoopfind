@@ -18,6 +18,23 @@ const statusLabel = {
   missed: "Missed",
 } as const;
 
+// Only surface known, safe database messages; anything else is generic so we
+// never leak SQL, codes, or raw error objects to the user.
+const SAFE_ERRORS = new Set([
+  "Authentication required",
+  "Game not found",
+  "Attendance status must be attended or missed",
+  "Only the game creator can update attendance",
+  "Attendance cannot be updated before the game starts",
+  "Participant not found for this game",
+]);
+
+function attendanceErrorMessage(message: string | undefined): string {
+  return message && SAFE_ERRORS.has(message)
+    ? message
+    : "We couldn't update attendance. Refresh and try again.";
+}
+
 const note = "mt-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 text-zinc-300";
 const baseBtn =
   "rounded-full border px-4 py-1.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50";
@@ -44,7 +61,7 @@ export default function HostAttendanceManager({
     });
 
     if (rpcError) {
-      setErrorMsg(rpcError.message);
+      setErrorMsg(attendanceErrorMessage(rpcError.message));
       setPendingId(null);
       return;
     }
