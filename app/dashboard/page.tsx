@@ -10,12 +10,19 @@ import {
 import { getCurrentProfile, isProfileComplete } from "@/lib/profiles";
 
 export default async function DashboardPage() {
-  const { games: recommendedGames, error } = await fetchPublicGames(3);
-  const { games: joinedGames, error: joinedError } = await fetchCurrentUserJoinedGames();
-  const { games: hostedGames, error: hostedError } = await fetchCurrentUserHostedGames();
-  const { games: pastHostedGames, error: pastHostedError } =
-    await fetchCurrentUserPastHostedGames();
-  const profile = await getCurrentProfile();
+  const [
+    { games: recommendedGames, error },
+    { games: joinedGames, error: joinedError },
+    { games: hostedGames, error: hostedError },
+    { games: pastHostedGames, error: pastHostedError },
+    profile,
+  ] = await Promise.all([
+    fetchPublicGames(3),
+    fetchCurrentUserJoinedGames(),
+    fetchCurrentUserHostedGames(),
+    fetchCurrentUserPastHostedGames(),
+    getCurrentProfile(),
+  ]);
   const displayName = profile?.displayName;
 
   return (

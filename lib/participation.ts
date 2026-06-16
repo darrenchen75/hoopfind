@@ -14,7 +14,9 @@ const PARTICIPATION_STATUSES: ParticipationStatus[] = [
   "missed",
 ];
 
-function toParticipationStatus(value: unknown): ParticipationStatus | null {
+export function toParticipationStatus(
+  value: unknown,
+): ParticipationStatus | null {
   return PARTICIPATION_STATUSES.includes(value as ParticipationStatus)
     ? (value as ParticipationStatus)
     : null;
