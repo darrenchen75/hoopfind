@@ -109,7 +109,7 @@ begin
     raise exception 'Authentication required';
   end if;
 
-  if new_status not in ('attended', 'missed') then
+  if new_status is null or new_status not in ('attended', 'missed') then
     raise exception 'Attendance status must be attended or missed';
   end if;
 
