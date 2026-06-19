@@ -7,6 +7,7 @@ import {
   steps,
   trust,
 } from "@/lib/landing-content";
+import type { Fit } from "@/lib/landing-content";
 
 const display = Big_Shoulders({ subsets: ["latin"], variable: "--font-display" });
 const body = Inter({ subsets: ["latin"], variable: "--font-body" });
@@ -28,7 +29,7 @@ const palette = {
 const dStyle = { fontFamily: "var(--font-display)" } as React.CSSProperties;
 const sStyle = { fontFamily: "var(--font-serif)" } as React.CSSProperties;
 
-const fitBadge: Record<string, string> = {
+const fitBadge: Record<Fit, string> = {
   "Good fit": "bg-[var(--c-ink)] text-[var(--c-paper)]",
   "A step up": "bg-[var(--c-vermilion)] text-[var(--c-ink)]",
   "More casual": "border border-[var(--c-ink)] text-[var(--c-ink)]",
@@ -67,7 +68,7 @@ function HalfCourt() {
   );
 }
 
-function FitDot({ fit }: { fit: string }) {
+function FitDot({ fit }: { fit: Fit }) {
   const base = "block h-5 w-5 rounded-full border-2";
   if (fit === "Good fit")
     return <span className={`${base} border-[var(--c-paper)] bg-[var(--c-ink)]`} />;
@@ -367,11 +368,11 @@ export default function Home() {
                   <Link
                     key={g.id}
                     href="/games"
-                    aria-label={`${g.title} at ${g.court}, ${g.distanceMi} miles away`}
+                    aria-label={`${g.title} at ${g.court}, ${g.distanceMi} miles away — ${g.fit}`}
                     className="group absolute -translate-x-1/2 -translate-y-full focus-visible:outline-none"
                     style={{ left: `${g.mapX}%`, top: `${g.mapY}%` }}
                   >
-                    <span className="block transition group-hover:scale-125 group-focus-visible:scale-125 motion-reduce:group-hover:scale-100">
+                    <span className="block transition group-hover:scale-125 group-focus-visible:scale-125 motion-reduce:group-hover:scale-100 motion-reduce:group-focus-visible:scale-100">
                       <FitDot fit={g.fit} />
                     </span>
                     <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap border border-[var(--c-ink)] bg-[var(--c-paper)] px-1.5 py-0.5 text-[0.6rem] font-bold opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
