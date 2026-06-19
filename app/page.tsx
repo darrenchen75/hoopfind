@@ -46,8 +46,7 @@ function HalfCourt() {
     <svg
       viewBox="0 0 240 320"
       className="h-full w-full"
-      role="img"
-      aria-label="Stylized half-court diagram"
+      aria-hidden="true"
     >
       <rect width="240" height="320" fill="var(--c-vermilion)" />
       <g
