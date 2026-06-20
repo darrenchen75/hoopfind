@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { HostParticipant } from "@/lib/roster";
-import { errorPanel } from "@/lib/ui";
+import { errorPanel, note } from "@/lib/ui";
 
 type Props = {
   gameId: string;
@@ -33,8 +33,6 @@ function attendanceErrorMessage(message: string | undefined): string {
     ? message
     : "We couldn't update attendance. Refresh and try again.";
 }
-
-const note = "mt-4 border-2 border-ink bg-paper p-5 text-muted";
 const baseBtn =
   "border-2 px-4 py-1.5 text-sm font-bold uppercase tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vermilion disabled:cursor-not-allowed disabled:opacity-50";
 

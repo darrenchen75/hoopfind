@@ -1,12 +1,11 @@
 import type { RosterEntry } from "@/lib/roster";
+import { note } from "@/lib/ui";
 
 type Props = {
   access: "loggedOut" | "notJoined" | "authorized" | "error";
   roster: RosterEntry[];
   error: boolean;
 };
-
-const note = "mt-4 border-2 border-ink bg-paper p-5 text-muted";
 
 function Field({ label, value }: { label: string; value: string | null }) {
   return (
