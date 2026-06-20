@@ -2,49 +2,84 @@ import Link from "next/link";
 
 import type { PickupGame } from "@/lib/types";
 
+function SpotsBadge({ spotsLeft }: { spotsLeft: number }) {
+  if (spotsLeft <= 0) {
+    return (
+      <span className="shrink-0 border border-ink px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-muted">
+        Full
+      </span>
+    );
+  }
+  if (spotsLeft <= 3) {
+    return (
+      <span className="shrink-0 bg-vermilion px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-ink">
+        {spotsLeft} left
+      </span>
+    );
+  }
+  return (
+    <span className="shrink-0 border border-ink px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-ink">
+      {spotsLeft} open
+    </span>
+  );
+}
+
 export default function GameCard({ game }: { game: PickupGame }) {
+  const spotsLeft = Math.max(0, game.maxPlayers - game.currentPlayers);
+  const fillPct =
+    game.maxPlayers > 0
+      ? Math.min(100, Math.round((game.currentPlayers / game.maxPlayers) * 100))
+      : 0;
+
   return (
     <Link
       href={`/games/${game.id}`}
-      className="group flex flex-col border-2 border-ink bg-paper p-5 transition hover:bg-white/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vermilion"
+      className="group flex flex-col border-2 border-ink bg-paper p-5 transition hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vermilion motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
-      <div className="flex items-start justify-between gap-3">
-        <h2 className="font-display text-2xl font-black uppercase leading-none">
-          {game.title}
-        </h2>
-        <span className="shrink-0 border border-ink px-2 py-1 text-xs font-bold uppercase tracking-wide">
+      <div className="flex items-center justify-between gap-3">
+        <span className="bg-ink px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-paper">
           {game.gameType}
         </span>
+        <SpotsBadge spotsLeft={spotsLeft} />
       </div>
 
-      <p className="mt-2 text-sm text-muted">
+      <h2 className="mt-4 font-display text-3xl font-black uppercase leading-[0.95]">
+        {game.title}
+      </h2>
+
+      <p className="mt-1 text-sm font-semibold text-vermilion-ink">
+        {game.dateTimeDisplay}
+      </p>
+      <p className="mt-1 text-sm text-muted">
         {game.locationName} · {game.area}
       </p>
 
-      <p className="mt-3 text-sm font-semibold text-vermilion-ink">
-        {game.dateTimeDisplay}
+      <p className="mt-3 font-serif text-base italic leading-snug text-muted line-clamp-1">
+        {game.notes}
       </p>
 
-      <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-3 text-sm">
-        <div className="flex gap-1.5">
-          <dt className="text-muted">Players</dt>
-          <dd className="font-semibold">
+      <div className="mt-5 border-t border-line pt-4">
+        <div className="flex items-baseline justify-between text-xs font-bold uppercase tracking-wide text-muted">
+          <span>Players</span>
+          <span className="text-ink">
             {game.currentPlayers}/{game.maxPlayers}
-          </dd>
+          </span>
         </div>
-        <div className="flex gap-1.5">
-          <dt className="text-muted">Speed</dt>
-          <dd className="font-semibold">{game.competitiveness}</dd>
+        <div className="mt-2 h-2 w-full bg-line" aria-hidden>
+          <div className="h-full bg-vermilion" style={{ width: `${fillPct}%` }} />
         </div>
-        <div className="flex gap-1.5">
+
+        <dl className="mt-3 flex items-baseline justify-between text-xs font-bold uppercase tracking-wide">
           <dt className="text-muted">Skill</dt>
-          <dd className="font-semibold">
+          <dd className="text-ink">
             {game.skillRange.min}–{game.skillRange.max}
           </dd>
-        </div>
-      </dl>
-
-      <p className="mt-3 text-sm leading-6 text-muted">{game.notes}</p>
+        </dl>
+        <dl className="mt-1.5 flex items-baseline justify-between text-xs font-bold uppercase tracking-wide">
+          <dt className="text-muted">Speed</dt>
+          <dd className="text-ink">{game.competitiveness}</dd>
+        </dl>
+      </div>
     </Link>
   );
 }
