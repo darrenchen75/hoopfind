@@ -15,7 +15,7 @@ export default async function GamesPage() {
             Browse games
           </p>
 
-          <h1 className="font-display text-4xl font-black uppercase leading-[0.9] tracking-tight md:text-6xl">
+          <h1 className="font-display text-5xl font-black uppercase leading-[0.9] tracking-tight md:text-6xl">
             Public pickup runs
           </h1>
 
