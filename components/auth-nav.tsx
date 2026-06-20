@@ -29,10 +29,16 @@ export default function AuthNav() {
   if (loggedIn) {
     return (
       <>
-        <Link href="/dashboard" className="hover:text-white">
+        <Link
+          href="/dashboard"
+          className="hover:text-vermilion-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-vermilion"
+        >
           Dashboard
         </Link>
-        <Link href="/profile/setup" className="hover:text-white">
+        <Link
+          href="/profile/setup"
+          className="hover:text-vermilion-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-vermilion"
+        >
           Profile
         </Link>
         <LogoutButton />
@@ -42,12 +48,15 @@ export default function AuthNav() {
 
   return (
     <>
-      <Link href="/login" className="hover:text-white">
+      <Link
+        href="/login"
+        className="hover:text-vermilion-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-vermilion"
+      >
         Log in
       </Link>
       <Link
         href="/signup"
-        className="rounded-full bg-orange-500 px-4 py-1.5 font-semibold text-white transition hover:bg-orange-400"
+        className="bg-vermilion px-4 py-1.5 font-bold uppercase tracking-wide text-ink transition hover:bg-ink hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
       >
         Sign up
       </Link>

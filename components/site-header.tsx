@@ -3,17 +3,25 @@ import AuthNav from "@/components/auth-nav";
 
 export default function SiteHeader() {
   return (
-    <nav className="flex items-center justify-between">
-      <Link href="/" className="text-xl font-bold tracking-tight">
-        HoopFind
-      </Link>
-
-      <div className="flex items-center gap-4 text-sm text-zinc-300">
-        <Link href="/games" className="hover:text-white">
-          Browse Games
+    <header className="border-b-2 border-ink">
+      <nav className="flex items-center justify-between py-4">
+        <Link
+          href="/"
+          className="font-display text-3xl font-black uppercase tracking-tight focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-vermilion"
+        >
+          HoopFind
         </Link>
-        <AuthNav />
-      </div>
-    </nav>
+
+        <div className="flex items-center gap-5 text-sm font-semibold">
+          <Link
+            href="/games"
+            className="hover:text-vermilion-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-vermilion"
+          >
+            Browse games
+          </Link>
+          <AuthNav />
+        </div>
+      </nav>
+    </header>
   );
 }
