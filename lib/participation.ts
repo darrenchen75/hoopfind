@@ -1,3 +1,4 @@
+import { getCurrentUserId } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export type ParticipationStatus = "joined" | "attended" | "missed";
@@ -51,14 +52,13 @@ export interface JoinedGameIds {
 }
 
 export async function getJoinedGameIds(): Promise<JoinedGameIds> {
-  const supabase = await createClient();
-  const { data: claimsData } = await supabase.auth.getClaims();
-  const userId = claimsData?.claims?.sub;
+  const userId = await getCurrentUserId();
 
   if (!userId) {
     return { isAuthenticated: false, gameIds: [], error: false };
   }
 
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("game_participants")
     .select("game_id")
@@ -76,14 +76,13 @@ export async function getJoinedGameIds(): Promise<JoinedGameIds> {
 export async function getGameParticipation(
   gameId: string,
 ): Promise<GameParticipation> {
-  const supabase = await createClient();
-  const { data: claimsData } = await supabase.auth.getClaims();
-  const userId = claimsData?.claims?.sub;
+  const userId = await getCurrentUserId();
 
   if (!userId) {
     return { isAuthenticated: false, userId: null, status: null, error: false };
   }
 
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("game_participants")
     .select("status")

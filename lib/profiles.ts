@@ -1,3 +1,4 @@
+import { getCurrentUserId } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { SkillLevel, UserProfile } from "@/lib/types";
 
@@ -26,14 +27,13 @@ type ProfileRow = {
 };
 
 export async function getCurrentProfile(): Promise<UserProfile | null> {
-  const supabase = await createClient();
-  const { data: claimsData } = await supabase.auth.getClaims();
-  const userId = claimsData?.claims?.sub;
+  const userId = await getCurrentUserId();
 
   if (!userId) {
     return null;
   }
 
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
     .select(
