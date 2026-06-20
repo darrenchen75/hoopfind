@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { field, label, btnPrimary, errorPanel, successPanel } from "@/lib/ui";
 
 const gameTypes = ["3v3", "4v4", "5v5", "Open Run"];
 const competitivenessLevels = ["Casual", "Competitive", "Highly Competitive"];
 const skillLevels = ["Beginner", "Intermediate", "Advanced", "Elite"];
-const fieldClasses = "w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-orange-500 focus:outline-none";
-const labelClasses = "mb-2 block text-sm font-medium text-zinc-300";
 
 type GameFields = {
   title: string;
@@ -146,17 +145,14 @@ export default function CreateGameForm() {
   }
 
   if (status === "loading") {
-    return <p className="mt-10 text-sm text-zinc-400">Loading…</p>;
+    return <p className="mt-10 text-sm text-muted">Loading…</p>;
   }
 
   if (status === "unauthenticated") {
     return (
-      <div className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-        <p className="text-zinc-300">You need to be logged in to create a game.</p>
-        <Link
-          href="/login"
-          className="mt-4 inline-block rounded-full bg-orange-500 px-6 py-3 font-semibold text-white transition hover:bg-orange-400"
-        >
+      <div className="mt-10 border-2 border-ink bg-paper p-6">
+        <p className="text-muted">You need to be logged in to create a game.</p>
+        <Link href="/login" className={`mt-4 ${btnPrimary}`}>
           Go to login
         </Link>
       </div>
@@ -166,7 +162,7 @@ export default function CreateGameForm() {
   return (
     <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-6">
       <div>
-        <label htmlFor="title" className={labelClasses}>
+        <label htmlFor="title" className={label}>
           Game title
         </label>
         <input
@@ -175,13 +171,13 @@ export default function CreateGameForm() {
           placeholder="Saturday Morning Run"
           value={fields.title}
           onChange={(event) => update("title", event.target.value)}
-          className={fieldClasses}
+          className={field}
         />
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="locationName" className={labelClasses}>
+          <label htmlFor="locationName" className={label}>
             Location name
           </label>
           <input
@@ -190,12 +186,12 @@ export default function CreateGameForm() {
             placeholder="Lincoln Park Courts"
             value={fields.location_name}
             onChange={(event) => update("location_name", event.target.value)}
-            className={fieldClasses}
+            className={field}
           />
         </div>
 
         <div>
-          <label htmlFor="area" className={labelClasses}>
+          <label htmlFor="area" className={label}>
             City / area
           </label>
           <input
@@ -204,14 +200,14 @@ export default function CreateGameForm() {
             placeholder="North Side, Chicago"
             value={fields.area}
             onChange={(event) => update("area", event.target.value)}
-            className={fieldClasses}
+            className={field}
           />
         </div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="date" className={labelClasses}>
+          <label htmlFor="date" className={label}>
             Date
           </label>
           <input
@@ -219,12 +215,12 @@ export default function CreateGameForm() {
             type="date"
             value={fields.date}
             onChange={(event) => update("date", event.target.value)}
-            className={fieldClasses}
+            className={field}
           />
         </div>
 
         <div>
-          <label htmlFor="time" className={labelClasses}>
+          <label htmlFor="time" className={label}>
             Time
           </label>
           <input
@@ -232,21 +228,21 @@ export default function CreateGameForm() {
             type="time"
             value={fields.time}
             onChange={(event) => update("time", event.target.value)}
-            className={fieldClasses}
+            className={field}
           />
         </div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="gameType" className={labelClasses}>
+          <label htmlFor="gameType" className={label}>
             Game type
           </label>
           <select
             id="gameType"
             value={fields.game_type}
             onChange={(event) => update("game_type", event.target.value)}
-            className={fieldClasses}
+            className={field}
           >
             {gameTypes.map((type) => (
               <option key={type} value={type}>
@@ -257,7 +253,7 @@ export default function CreateGameForm() {
         </div>
 
         <div>
-          <label htmlFor="maxPlayers" className={labelClasses}>
+          <label htmlFor="maxPlayers" className={label}>
             Max players
           </label>
           <input
@@ -268,20 +264,20 @@ export default function CreateGameForm() {
             placeholder="10"
             value={fields.max_players}
             onChange={(event) => update("max_players", event.target.value)}
-            className={fieldClasses}
+            className={field}
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="competitiveness" className={labelClasses}>
+        <label htmlFor="competitiveness" className={label}>
           Competitiveness
         </label>
         <select
           id="competitiveness"
           value={fields.competitiveness}
           onChange={(event) => update("competitiveness", event.target.value)}
-          className={fieldClasses}
+          className={field}
         >
           {competitivenessLevels.map((level) => (
             <option key={level} value={level}>
@@ -293,14 +289,14 @@ export default function CreateGameForm() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="minSkill" className={labelClasses}>
+          <label htmlFor="minSkill" className={label}>
             Minimum skill level
           </label>
           <select
             id="minSkill"
             value={fields.min_skill_level}
             onChange={(event) => update("min_skill_level", event.target.value)}
-            className={fieldClasses}
+            className={field}
           >
             {skillLevels.map((level) => (
               <option key={level} value={level}>
@@ -311,14 +307,14 @@ export default function CreateGameForm() {
         </div>
 
         <div>
-          <label htmlFor="maxSkill" className={labelClasses}>
+          <label htmlFor="maxSkill" className={label}>
             Maximum skill level
           </label>
           <select
             id="maxSkill"
             value={fields.max_skill_level}
             onChange={(event) => update("max_skill_level", event.target.value)}
-            className={fieldClasses}
+            className={field}
           >
             {skillLevels.map((level) => (
               <option key={level} value={level}>
@@ -330,7 +326,7 @@ export default function CreateGameForm() {
       </div>
 
       <div>
-        <label htmlFor="notes" className={labelClasses}>
+        <label htmlFor="notes" className={label}>
           Notes
         </label>
         <textarea
@@ -339,18 +335,18 @@ export default function CreateGameForm() {
           placeholder="Full-court games to 11, win stays on. Bring a light and dark shirt."
           value={fields.notes}
           onChange={(event) => update("notes", event.target.value)}
-          className={fieldClasses}
+          className={field}
         />
       </div>
 
       {error && (
-        <p className="rounded-lg border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">
+        <p className={errorPanel}>
           {error}
         </p>
       )}
 
       {success && (
-        <p className="rounded-lg border border-green-900 bg-green-950/50 px-3 py-2 text-sm text-green-300">
+        <p className={successPanel}>
           {success}
         </p>
       )}
@@ -359,14 +355,14 @@ export default function CreateGameForm() {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-full bg-orange-500 px-6 py-3 text-center font-semibold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className={btnPrimary}
         >
           {saving ? "Creating…" : "Create game"}
         </button>
 
         <Link
           href="/dashboard"
-          className="text-center text-sm font-semibold text-zinc-300 transition hover:text-white"
+          className="text-center text-sm font-bold uppercase tracking-wide text-muted transition hover:text-ink"
         >
           Cancel and go back
         </Link>
