@@ -8,6 +8,7 @@ import {
   fetchPublicGames,
 } from "@/lib/games";
 import { getCurrentProfile, isProfileComplete } from "@/lib/profiles";
+import { btnPrimary } from "@/lib/ui";
 
 export default async function DashboardPage() {
   const [
@@ -26,37 +27,37 @@ export default async function DashboardPage() {
   const displayName = profile?.displayName;
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+    <main className="min-h-screen bg-paper text-ink">
       <section className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
         <SiteHeader />
 
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.25em] text-orange-400">
+            <p className="mb-4 text-sm font-bold uppercase tracking-[0.25em] text-vermilion-ink">
               Dashboard
             </p>
-            <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl">
+            <h1 className="font-display text-4xl font-bold uppercase leading-tight tracking-tight md:text-5xl">
               Welcome back{displayName ? `, ${displayName}` : ""}
             </h1>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-zinc-300">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-muted">
               Browse upcoming public runs and the games you&apos;ve joined.
             </p>
           </div>
 
           <Link
             href="/games/new"
-            className="shrink-0 rounded-full bg-orange-500 px-6 py-3 text-center font-semibold text-white transition hover:bg-orange-400"
+            className={`shrink-0 ${btnPrimary}`}
           >
             Create a game
           </Link>
         </div>
 
         {!isProfileComplete(profile) && (
-          <p className="mt-8 rounded-xl border border-orange-500/30 bg-orange-500/10 p-4 text-sm text-zinc-300">
+          <p className="mt-8 border-2 border-vermilion bg-vermilion/10 p-4 text-sm text-ink">
             Complete your{" "}
             <Link
               href="/profile/setup"
-              className="font-semibold text-orange-400 hover:text-orange-300"
+              className="font-bold text-vermilion-ink hover:text-ink"
             >
               player profile
             </Link>{" "}
@@ -65,17 +66,17 @@ export default async function DashboardPage() {
         )}
 
         <div className="mt-12">
-          <h2 className="text-2xl font-semibold tracking-tight">Upcoming games</h2>
-          <p className="mt-1 text-sm text-zinc-400">
+          <h2 className="font-display text-2xl font-semibold uppercase tracking-tight">Upcoming games</h2>
+          <p className="mt-1 text-sm text-muted">
             The next public pickup runs available on HoopFind.
           </p>
 
           {error ? (
-            <p className="mt-6 rounded-xl border border-red-900 bg-red-950/50 p-6 text-zinc-300">
+            <p className="mt-6 border-2 border-vermilion-ink bg-vermilion-ink/10 p-6 text-vermilion-ink">
               We couldn&apos;t load games right now. Please try again later.
             </p>
           ) : recommendedGames.length === 0 ? (
-            <p className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 text-zinc-300">
+            <p className="mt-6 border-2 border-ink bg-paper p-6 text-muted">
               No public games yet. Be the first to post a run.
             </p>
           ) : (
@@ -88,19 +89,19 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-12">
-          <h2 className="text-2xl font-semibold tracking-tight">Joined games</h2>
-          <p className="mt-1 text-sm text-zinc-400">Games you&apos;re already in on.</p>
+          <h2 className="font-display text-2xl font-semibold uppercase tracking-tight">Joined games</h2>
+          <p className="mt-1 text-sm text-muted">Games you&apos;re already in on.</p>
 
           {joinedError ? (
-            <p className="mt-6 rounded-xl border border-red-900 bg-red-950/50 p-6 text-zinc-300">
+            <p className="mt-6 border-2 border-vermilion-ink bg-vermilion-ink/10 p-6 text-vermilion-ink">
               We couldn&apos;t load your joined games right now. Please try again later.
             </p>
           ) : joinedGames.length === 0 ? (
-            <p className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 text-zinc-300">
+            <p className="mt-6 border-2 border-ink bg-paper p-6 text-muted">
               You haven&apos;t joined any games yet.{" "}
               <Link
                 href="/games"
-                className="font-semibold text-orange-400 hover:text-orange-300"
+                className="font-bold text-vermilion-ink hover:text-ink"
               >
                 Browse public runs
               </Link>{" "}
@@ -116,21 +117,21 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-12">
-          <h2 className="text-2xl font-semibold tracking-tight">Hosted games</h2>
-          <p className="mt-1 text-sm text-zinc-400">
+          <h2 className="font-display text-2xl font-semibold uppercase tracking-tight">Hosted games</h2>
+          <p className="mt-1 text-sm text-muted">
             Upcoming pickup runs you organized.
           </p>
 
           {hostedError ? (
-            <p className="mt-6 rounded-xl border border-red-900 bg-red-950/50 p-6 text-zinc-300">
+            <p className="mt-6 border-2 border-vermilion-ink bg-vermilion-ink/10 p-6 text-vermilion-ink">
               We couldn&apos;t load your hosted games right now. Please try again later.
             </p>
           ) : hostedGames.length === 0 ? (
-            <p className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 text-zinc-300">
+            <p className="mt-6 border-2 border-ink bg-paper p-6 text-muted">
               You haven&apos;t created an upcoming game yet.{" "}
               <Link
                 href="/games/new"
-                className="font-semibold text-orange-400 hover:text-orange-300"
+                className="font-bold text-vermilion-ink hover:text-ink"
               >
                 Create a game
               </Link>{" "}
@@ -147,13 +148,13 @@ export default async function DashboardPage() {
 
         {(pastHostedError || pastHostedGames.length > 0) && (
           <div className="mt-12">
-            <h2 className="text-2xl font-semibold tracking-tight">Past hosted games</h2>
-            <p className="mt-1 text-sm text-zinc-400">
+            <h2 className="font-display text-2xl font-semibold uppercase tracking-tight">Past hosted games</h2>
+            <p className="mt-1 text-sm text-muted">
               Review completed runs and manage attendance.
             </p>
 
             {pastHostedError ? (
-              <p className="mt-6 rounded-xl border border-red-900 bg-red-950/50 p-6 text-zinc-300">
+              <p className="mt-6 border-2 border-vermilion-ink bg-vermilion-ink/10 p-6 text-vermilion-ink">
                 We couldn&apos;t load your past hosted games right now. Please try again later.
               </p>
             ) : (

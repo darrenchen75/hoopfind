@@ -4,10 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-
-const fieldClasses =
-  "w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-orange-500 focus:outline-none";
-const labelClasses = "mb-2 block text-sm font-medium text-zinc-300";
+import { field, label, btnPrimary, errorPanel, successPanel } from "@/lib/ui";
 
 type AuthMode = "login" | "signup";
 
@@ -92,17 +89,17 @@ export default function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirec
 
   return (
     <div className="mt-12 w-full max-w-md">
-      <p className="mb-4 text-sm font-semibold uppercase tracking-[0.25em] text-orange-400">
+      <p className="mb-4 text-sm font-bold uppercase tracking-[0.25em] text-vermilion-ink">
         {text.eyebrow}
       </p>
-      <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl">
+      <h1 className="font-display text-5xl font-black uppercase leading-[0.9] tracking-tight">
         {text.title}
       </h1>
-      <p className="mt-4 text-lg leading-8 text-zinc-300">{text.subtitle}</p>
+      <p className="mt-4 text-lg leading-8 text-muted">{text.subtitle}</p>
 
       <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-6">
         <div>
-          <label htmlFor="email" className={labelClasses}>
+          <label htmlFor="email" className={label}>
             Email
           </label>
           <input
@@ -114,12 +111,12 @@ export default function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirec
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@example.com"
-            className={fieldClasses}
+            className={field}
           />
         </div>
 
         <div>
-          <label htmlFor="password" className={labelClasses}>
+          <label htmlFor="password" className={label}>
             Password
           </label>
           <input
@@ -131,18 +128,18 @@ export default function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirec
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="••••••••"
-            className={fieldClasses}
+            className={field}
           />
         </div>
 
         {error && (
-          <p className="rounded-lg border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">
+          <p className={errorPanel}>
             {error}
           </p>
         )}
 
         {success && (
-          <p className="rounded-lg border border-green-900 bg-green-950/50 px-3 py-2 text-sm text-green-300">
+          <p className={successPanel}>
             {success}
           </p>
         )}
@@ -150,15 +147,18 @@ export default function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirec
         <button
           type="submit"
           disabled={loading}
-          className="rounded-full bg-orange-500 px-6 py-3 text-center font-semibold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className={btnPrimary}
         >
           {loading ? "Please wait…" : text.submit}
         </button>
       </form>
 
-      <p className="mt-6 text-sm text-zinc-400">
+      <p className="mt-6 text-sm text-muted">
         {text.altText}{" "}
-        <Link href={text.altHref} className="font-semibold text-orange-400 hover:text-orange-300">
+        <Link
+          href={text.altHref}
+          className="font-bold text-vermilion-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vermilion"
+        >
           {text.altLink}
         </Link>
       </p>

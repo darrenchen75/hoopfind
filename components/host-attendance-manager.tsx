@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { HostParticipant } from "@/lib/roster";
+import { errorPanel, note } from "@/lib/ui";
 
 type Props = {
   gameId: string;
@@ -32,10 +33,8 @@ function attendanceErrorMessage(message: string | undefined): string {
     ? message
     : "We couldn't update attendance. Refresh and try again.";
 }
-
-const note = "mt-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 text-zinc-300";
 const baseBtn =
-  "rounded-full border px-4 py-1.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50";
+  "border-2 px-4 py-1.5 text-sm font-bold uppercase tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vermilion disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function HostAttendanceManager({
   gameId,
@@ -78,7 +77,7 @@ export default function HostAttendanceManager({
   return (
     <div className="mt-4 flex flex-col gap-3">
       {!hasStarted && (
-        <p className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-zinc-400">
+        <p className="border-2 border-ink bg-paper px-4 py-3 text-sm text-muted">
           Attendance controls unlock after the game starts.
         </p>
       )}
@@ -87,13 +86,13 @@ export default function HostAttendanceManager({
         {participants.map((p) => (
           <li
             key={p.userId}
-            className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-3 border-2 border-ink bg-paper p-4 sm:flex-row sm:items-center sm:justify-between"
           >
             <div>
-              <p className="text-base font-semibold text-zinc-100">
+              <p className="text-base font-semibold text-ink">
                 {p.displayName}
               </p>
-              <p className="text-sm text-zinc-400">{statusLabel[p.status]}</p>
+              <p className="text-sm text-muted">{statusLabel[p.status]}</p>
             </div>
 
             {hasStarted && (
@@ -104,8 +103,8 @@ export default function HostAttendanceManager({
                   disabled={pendingId !== null}
                   className={`${baseBtn} ${
                     p.status === "attended"
-                      ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-300"
-                      : "border-zinc-700 text-zinc-300 hover:border-zinc-500"
+                      ? "border-success bg-success/10 text-success"
+                      : "border-ink text-muted hover:border-vermilion"
                   }`}
                 >
                   Attended
@@ -116,8 +115,8 @@ export default function HostAttendanceManager({
                   disabled={pendingId !== null}
                   className={`${baseBtn} ${
                     p.status === "missed"
-                      ? "border-red-500/50 bg-red-500/15 text-red-300"
-                      : "border-zinc-700 text-zinc-300 hover:border-zinc-500"
+                      ? "border-vermilion-ink bg-vermilion-ink/10 text-vermilion-ink"
+                      : "border-ink text-muted hover:border-vermilion"
                   }`}
                 >
                   Missed
@@ -129,7 +128,7 @@ export default function HostAttendanceManager({
       </ul>
 
       {errorMsg && (
-        <p className="rounded-lg border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">
+        <p className={errorPanel}>
           {errorMsg}
         </p>
       )}

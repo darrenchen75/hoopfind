@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { ParticipationStatus } from "@/lib/participation";
-
-const buttonClasses =
-  "rounded-full bg-orange-500 px-6 py-3 text-center font-semibold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60";
+import { btnPrimary, errorPanel } from "@/lib/ui";
 
 const statusLabels: Record<ParticipationStatus, string> = {
   joined: "You're in for this game.",
@@ -64,7 +62,7 @@ export default function GameParticipationButton({
     return (
       <Link
         href={`/login?redirectTo=/games/${gameId}`}
-        className={`inline-block ${buttonClasses}`}
+        className={btnPrimary}
       >
         Log in to join
       </Link>
@@ -73,7 +71,7 @@ export default function GameParticipationButton({
 
   if (participationError) {
     return (
-      <p className="text-base text-zinc-400">
+      <p className="text-base text-muted">
         We couldn&rsquo;t load your participation status. Refresh and try again.
       </p>
     );
@@ -81,7 +79,7 @@ export default function GameParticipationButton({
 
   if (status === "attended" || status === "missed") {
     return (
-      <p className="text-base font-medium text-zinc-300">
+      <p className="text-base font-medium text-muted">
         {statusLabels[status]}
       </p>
     );
@@ -90,11 +88,11 @@ export default function GameParticipationButton({
   if (status === "joined") {
     return (
       <div className="flex flex-col gap-3">
-        <p className="text-base font-medium text-emerald-300">
+        <p className="text-base font-semibold text-success">
           {statusLabels.joined}
         </p>
         {hasStarted ? (
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-muted">
             This game has started, so you can no longer leave.
           </p>
         ) : (
@@ -102,7 +100,7 @@ export default function GameParticipationButton({
             type="button"
             onClick={() => run("leave_game")}
             disabled={pending}
-            className={buttonClasses}
+            className={btnPrimary}
           >
             {pending ? "Leaving…" : "Leave game"}
           </button>
@@ -125,12 +123,12 @@ export default function GameParticipationButton({
         type="button"
         onClick={() => run("join_game")}
         disabled={pending || hasStarted || isFull}
-        className={buttonClasses}
+        className={btnPrimary}
       >
         {pending ? "Joining…" : "Join game"}
       </button>
       {disabledReason && (
-        <p className="text-sm text-zinc-400">{disabledReason}</p>
+        <p className="text-sm text-muted">{disabledReason}</p>
       )}
       {error && <ErrorMessage message={error} />}
     </div>
@@ -139,7 +137,7 @@ export default function GameParticipationButton({
 
 function ErrorMessage({ message }: { message: string }) {
   return (
-    <p className="rounded-lg border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">
+    <p className={errorPanel}>
       {message}
     </p>
   );

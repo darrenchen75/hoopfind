@@ -4,14 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { field, label, btnPrimary, errorPanel, successPanel } from "@/lib/ui";
 
 const skillLevels = ["Beginner", "Intermediate", "Advanced", "Elite"];
 const positions = ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"];
 const playStyles = ["Playmaker", "Scorer", "Shooter", "Slasher", "Defender", "Rebounder", "All-around"];
 const competitivenessLevels = ["Casual", "Competitive", "Highly Competitive"];
 const availabilityOptions = ["Weekday mornings", "Weekday evenings", "Weekends", "Flexible"];
-const fieldClasses = "w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-orange-500 focus:outline-none";
-const labelClasses = "mb-2 block text-sm font-medium text-zinc-300";
 
 type ProfileFields = {
   display_name: string;
@@ -132,17 +131,16 @@ export default function ProfileForm() {
   }
 
   if (status === "loading") {
-    return <p className="mt-10 text-sm text-zinc-400">Loading…</p>;
+    return <p className="mt-10 text-sm text-muted">Loading…</p>;
   }
 
   if (status === "unauthenticated") {
     return (
-      <div className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-        <p className="text-zinc-300">You need to be logged in to set up your profile.</p>
-        <Link
-          href="/login"
-          className="mt-4 inline-block rounded-full bg-orange-500 px-6 py-3 font-semibold text-white transition hover:bg-orange-400"
-        >
+      <div className="mt-10 border-2 border-ink bg-paper p-6">
+        <p className="text-muted">
+          You need to be logged in to set up your profile.
+        </p>
+        <Link href="/login" className={`mt-4 ${btnPrimary}`}>
           Go to login
         </Link>
       </div>
@@ -153,7 +151,7 @@ export default function ProfileForm() {
     <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-6">
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="displayName" className={labelClasses}>
+          <label htmlFor="displayName" className={label}>
             Display name
           </label>
           <input
@@ -162,12 +160,12 @@ export default function ProfileForm() {
             placeholder="Darren C."
             value={fields.display_name}
             onChange={(event) => update("display_name", event.target.value)}
-            className={fieldClasses}
+            className={field}
           />
         </div>
 
         <div>
-          <label htmlFor="area" className={labelClasses}>
+          <label htmlFor="area" className={label}>
             City / area
           </label>
           <input
@@ -176,21 +174,21 @@ export default function ProfileForm() {
             placeholder="North Side, Chicago"
             value={fields.area}
             onChange={(event) => update("area", event.target.value)}
-            className={fieldClasses}
+            className={field}
           />
         </div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="skillLevel" className={labelClasses}>
+          <label htmlFor="skillLevel" className={label}>
             Skill level
           </label>
           <select
             id="skillLevel"
             value={fields.skill_level}
             onChange={(event) => update("skill_level", event.target.value)}
-            className={fieldClasses}
+            className={field}
           >
             <option value="" disabled>
               Select skill level
@@ -204,14 +202,14 @@ export default function ProfileForm() {
         </div>
 
         <div>
-          <label htmlFor="position" className={labelClasses}>
+          <label htmlFor="position" className={label}>
             Primary position
           </label>
           <select
             id="position"
             value={fields.primary_position}
             onChange={(event) => update("primary_position", event.target.value)}
-            className={fieldClasses}
+            className={field}
           >
             <option value="" disabled>
               Select position
@@ -227,14 +225,14 @@ export default function ProfileForm() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="playStyle" className={labelClasses}>
+          <label htmlFor="playStyle" className={label}>
             Play style
           </label>
           <select
             id="playStyle"
             value={fields.play_style}
             onChange={(event) => update("play_style", event.target.value)}
-            className={fieldClasses}
+            className={field}
           >
             <option value="" disabled>
               Select play style
@@ -248,14 +246,14 @@ export default function ProfileForm() {
         </div>
 
         <div>
-          <label htmlFor="competitiveness" className={labelClasses}>
+          <label htmlFor="competitiveness" className={label}>
             Competitiveness preference
           </label>
           <select
             id="competitiveness"
             value={fields.competitiveness}
             onChange={(event) => update("competitiveness", event.target.value)}
-            className={fieldClasses}
+            className={field}
           >
             <option value="" disabled>
               Select competitiveness
@@ -271,14 +269,14 @@ export default function ProfileForm() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="availability" className={labelClasses}>
+          <label htmlFor="availability" className={label}>
             Availability
           </label>
           <select
             id="availability"
             value={fields.availability}
             onChange={(event) => update("availability", event.target.value)}
-            className={fieldClasses}
+            className={field}
           >
             <option value="" disabled>
               Select availability
@@ -292,7 +290,7 @@ export default function ProfileForm() {
         </div>
 
         <div>
-          <label htmlFor="maxTravelDistance" className={labelClasses}>
+          <label htmlFor="maxTravelDistance" className={label}>
             Max travel distance (miles)
           </label>
           <input
@@ -302,19 +300,19 @@ export default function ProfileForm() {
             placeholder="10"
             value={fields.max_travel_distance}
             onChange={(event) => update("max_travel_distance", event.target.value)}
-            className={fieldClasses}
+            className={field}
           />
         </div>
       </div>
 
       {error && (
-        <p className="rounded-lg border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">
+        <p className={errorPanel}>
           {error}
         </p>
       )}
 
       {success && (
-        <p className="rounded-lg border border-green-900 bg-green-950/50 px-3 py-2 text-sm text-green-300">
+        <p className={successPanel}>
           {success}
         </p>
       )}
@@ -323,14 +321,14 @@ export default function ProfileForm() {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-full bg-orange-500 px-6 py-3 text-center font-semibold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className={btnPrimary}
         >
           {saving ? "Saving…" : "Save profile"}
         </button>
 
         <Link
           href="/dashboard"
-          className="text-center text-sm font-semibold text-zinc-300 transition hover:text-white"
+          className="text-center text-sm font-bold uppercase tracking-wide text-muted transition hover:text-ink"
         >
           Back to dashboard
         </Link>
