@@ -1,3 +1,4 @@
+import { getCurrentUserId } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { fetchParticipantCounts, getJoinedGameIds } from "@/lib/participation";
 import type {
@@ -142,19 +143,12 @@ export async function fetchCurrentUserHostedGames(): Promise<{
   games: PickupGame[];
   error: boolean;
 }> {
-  const supabase = await createClient();
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-
-  if (claimsError) {
-    return { games: [], error: true };
-  }
-
-  const userId = claimsData?.claims?.sub;
+  const userId = await getCurrentUserId();
   if (!userId) {
     return { games: [], error: false };
   }
 
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("games")
     .select(GAME_COLUMNS)
@@ -181,19 +175,12 @@ export async function fetchCurrentUserPastHostedGames(): Promise<{
   games: PickupGame[];
   error: boolean;
 }> {
-  const supabase = await createClient();
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-
-  if (claimsError) {
-    return { games: [], error: true };
-  }
-
-  const userId = claimsData?.claims?.sub;
+  const userId = await getCurrentUserId();
   if (!userId) {
     return { games: [], error: false };
   }
 
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("games")
     .select(GAME_COLUMNS)

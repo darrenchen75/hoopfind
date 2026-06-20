@@ -22,15 +22,17 @@ export default async function GameDetailPage({
     notFound();
   }
 
-  const game = await fetchPublicGameById(id);
+  const [game, profile, participation] = await Promise.all([
+    fetchPublicGameById(id),
+    getCurrentProfile(),
+    getGameParticipation(id),
+  ]);
 
   if (!game) {
     notFound();
   }
 
-  const profile = await getCurrentProfile();
   const match = getMatch(profile, game);
-  const participation = await getGameParticipation(id);
   const hasStarted = isGameStarted(game.startsAt);
   const isCreator =
     !!participation.userId && participation.userId === game.creatorId;
