@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import type { PickupGame } from "@/lib/types";
+import type { MatchResult } from "@/lib/match";
+import MatchBadge from "@/components/match-badge";
 
 function SpotsBadge({ spotsLeft }: { spotsLeft: number }) {
   if (spotsLeft <= 0) {
@@ -24,7 +26,13 @@ function SpotsBadge({ spotsLeft }: { spotsLeft: number }) {
   );
 }
 
-export default function GameCard({ game }: { game: PickupGame }) {
+export default function GameCard({
+  game,
+  match,
+}: {
+  game: PickupGame;
+  match?: MatchResult;
+}) {
   const spotsLeft = Math.max(0, game.maxPlayers - game.currentPlayers);
   const fillPct =
     game.maxPlayers > 0
@@ -40,7 +48,10 @@ export default function GameCard({ game }: { game: PickupGame }) {
         <span className="bg-ink px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-paper">
           {game.gameType}
         </span>
-        <SpotsBadge spotsLeft={spotsLeft} />
+        <div className="flex items-center gap-2">
+          {match && <MatchBadge match={match} />}
+          <SpotsBadge spotsLeft={spotsLeft} />
+        </div>
       </div>
 
       <h2 className="mt-4 font-display text-3xl font-black uppercase leading-[0.95]">
