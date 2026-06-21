@@ -1,4 +1,4 @@
-import GameCard from "@/components/game-card";
+import GamesBrowser from "@/components/games-browser";
 import SiteHeader from "@/components/site-header";
 import { fetchPublicGames } from "@/lib/games";
 import { getMatch } from "@/lib/match";
@@ -9,6 +9,12 @@ export default async function GamesPage() {
     fetchPublicGames(),
     getCurrentProfile(),
   ]);
+
+  const items = games.map((game) => ({
+    game,
+    match: getMatch(profile, game),
+  }));
+  const canMatch = profile?.skillLevel != null;
 
   return (
     <main className="min-h-screen bg-paper text-ink">
@@ -38,15 +44,7 @@ export default async function GamesPage() {
             No public games yet. Be the first to post a run.
           </p>
         ) : (
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {games.map((game) => (
-              <GameCard
-                key={game.id}
-                game={game}
-                match={getMatch(profile, game)}
-              />
-            ))}
-          </div>
+          <GamesBrowser items={items} canMatch={canMatch} />
         )}
       </section>
     </main>
