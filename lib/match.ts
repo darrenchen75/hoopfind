@@ -56,3 +56,23 @@ export function getMatch(player: PlayerProfile | null, game: PickupGame): MatchR
     reason: `Your ${player.skillLevel} skill level lands right in this game's ${game.skillRange.min}–${game.skillRange.max} range.`,
   };
 }
+
+export type MatchTone = "success" | "warning" | "muted";
+
+export interface MatchBadge {
+  text: string;
+  tone: MatchTone;
+}
+
+export function getMatchBadge(match: MatchResult): MatchBadge | null {
+  switch (match.label) {
+    case "Good Fit":
+      return { text: "Good Fit", tone: "success" };
+    case "Might Be Too Competitive":
+      return { text: "Too Competitive", tone: "warning" };
+    case "Might Be Too Casual":
+      return { text: "Too Casual", tone: "muted" };
+    case "Missing Profile Info":
+      return null;
+  }
+}
