@@ -8,6 +8,7 @@ import {
   fetchPublicGames,
 } from "@/lib/games";
 import { getCurrentProfile, isProfileComplete } from "@/lib/profiles";
+import { getMatch } from "@/lib/match";
 import { btnPrimary } from "@/lib/ui";
 
 export default async function DashboardPage() {
@@ -82,7 +83,11 @@ export default async function DashboardPage() {
           ) : (
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {recommendedGames.map((game) => (
-                <GameCard key={game.id} game={game} />
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  match={getMatch(profile, game)}
+                />
               ))}
             </div>
           )}
