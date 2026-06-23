@@ -30,9 +30,15 @@ function offsetDateFields(days: number): Pick<GameFields, "date" | "time"> {
 const futureDateFields = () => offsetDateFields(7);
 const pastDateFields = () => offsetDateFields(-7);
 
+// A fully-valid game whose start is in the future, so it survives the
+// future-start check. Use this instead of `valid` wherever a test needs to
+// pass validation. `valid` keeps its fixed date only for tests that fail
+// before the date is ever checked.
+const futureValid: GameFields = { ...valid, ...futureDateFields() };
+
 describe("validate", () => {
   it("returns null for a valid game", () => {
-    expect(validate(valid)).toBeNull();
+    expect(validate(futureValid)).toBeNull();
   });
 
   it("flags a missing required field with its label", () => {
@@ -57,10 +63,6 @@ describe("validate", () => {
     expect(validate({ ...valid, date: "", time: "" })).not.toBeNull();
   });
 
-  it("returns null for a valid future game", () => {
-    expect(validate({ ...valid, ...futureDateFields() })).toBeNull();
-  });
-
   it("rejects a start time in the past", () => {
     expect(validate({ ...valid, ...pastDateFields() })).toBe(
       "The game must start in the future.",
@@ -70,21 +72,21 @@ describe("validate", () => {
 
 describe("fieldsToRow", () => {
   it("builds an ISO starts_at and trims strings", () => {
-    const row = fieldsToRow(valid);
+    const row = fieldsToRow(futureValid);
     expect(typeof row.starts_at).toBe("string");
     expect(row.title).toBe("Saturday Run");
     expect(row).not.toHaveProperty("date");
   });
 
   it("includes creator_id and is_public only when a creatorId is given", () => {
-    expect(fieldsToRow(valid)).not.toHaveProperty("creator_id");
-    const owned = fieldsToRow(valid, "user-1");
+    expect(fieldsToRow(futureValid)).not.toHaveProperty("creator_id");
+    const owned = fieldsToRow(futureValid, "user-1");
     expect(owned.creator_id).toBe("user-1");
     expect(owned.is_public).toBe(true);
   });
 
   it("maps empty notes to null", () => {
-    expect(fieldsToRow({ ...valid, notes: "   " }).notes).toBeNull();
+    expect(fieldsToRow({ ...futureValid, notes: "   " }).notes).toBeNull();
   });
 
   it("emptyGame fails validation (date/time blank)", () => {
