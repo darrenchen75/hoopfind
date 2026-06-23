@@ -25,6 +25,7 @@ function makeItem(overrides: {
     competitiveness: overrides.competitiveness ?? "Casual",
     skillRange: { min: "Beginner", max: "Elite" },
     notes: "",
+    isCanceled: false,
   };
   return { game, match: { label: overrides.label ?? "Good Fit", reason: "" } };
 }

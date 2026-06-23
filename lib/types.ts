@@ -42,4 +42,5 @@ export interface PickupGame {
   competitiveness: Competitiveness;
   skillRange: SkillRange;
   notes: string;
+  isCanceled: boolean;
 }

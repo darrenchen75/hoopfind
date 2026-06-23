@@ -8,9 +8,9 @@ import type {
   SkillLevel,
 } from "@/lib/types";
 
-const GAME_COLUMNS = "id, creator_id, title, location_name, area, starts_at, game_type, max_players, competitiveness, min_skill_level, max_skill_level, notes";
+const GAME_COLUMNS = "id, creator_id, title, location_name, area, starts_at, game_type, max_players, competitiveness, min_skill_level, max_skill_level, notes, canceled_at";
 
-type GameRow = {
+export type GameRow = {
   id: string;
   creator_id: string;
   title: string;
@@ -23,6 +23,7 @@ type GameRow = {
   min_skill_level: string;
   max_skill_level: string;
   notes: string | null;
+  canceled_at: string | null;
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -67,6 +68,7 @@ function mapGameRow(row: GameRow, currentPlayers = 0): PickupGame {
       max: row.max_skill_level as SkillLevel,
     },
     notes: row.notes ?? "No notes provided.",
+    isCanceled: row.canceled_at !== null,
   };
 }
 
@@ -79,6 +81,7 @@ export async function fetchPublicGames(
     .from("games")
     .select(GAME_COLUMNS)
     .eq("is_public", true)
+    .is("canceled_at", null)
     .gte("starts_at", new Date().toISOString())
     .order("starts_at", { ascending: true });
 
@@ -223,4 +226,25 @@ export async function fetchPublicGameById(
   const counts = await fetchParticipantCounts();
 
   return mapGameRow(row, counts.get(row.id) ?? 0);
+}
+
+export async function fetchGameForEdit(id: string): Promise<GameRow | null> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return null;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("games")
+    .select(GAME_COLUMNS)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const row = data as GameRow;
+  return row.creator_id === userId ? row : null;
 }
