@@ -1,9 +1,13 @@
 import GameCard from "@/components/game-card";
 import SiteHeader from "@/components/site-header";
 import { fetchPublicGames } from "@/lib/games";
+import { getCurrentProfile } from "@/lib/profiles";
 
 export default async function GamesPage() {
-  const { games, error } = await fetchPublicGames();
+  const [{ games, error }, profile] = await Promise.all([
+    fetchPublicGames(),
+    getCurrentProfile(),
+  ]);
 
   return (
     <main className="min-h-screen bg-paper text-ink">
@@ -35,7 +39,7 @@ export default async function GamesPage() {
         ) : (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {games.map((game) => (
-              <GameCard key={game.id} game={game} />
+              <GameCard key={game.id} game={game} profile={profile} />
             ))}
           </div>
         )}
