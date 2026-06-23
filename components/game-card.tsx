@@ -1,8 +1,20 @@
 import Link from "next/link";
 
-import type { PickupGame } from "@/lib/types";
+import MatchLabel from "@/components/match-label";
+import { getMatch } from "@/lib/match";
+import type { PickupGame, PlayerProfile } from "@/lib/types";
 
-export default function GameCard({ game }: { game: PickupGame }) {
+export default function GameCard({
+  game,
+  profile,
+}: {
+  game: PickupGame;
+  profile?: PlayerProfile | null;
+}) {
+  // Only show a match badge when the player's skill level is known; otherwise
+  // it would render a "Missing Profile Info" chip on every card.
+  const match = profile?.skillLevel ? getMatch(profile, game) : null;
+
   return (
     <Link
       href={`/games/${game.id}`}
@@ -20,6 +32,12 @@ export default function GameCard({ game }: { game: PickupGame }) {
       <p className="mt-2 text-sm text-muted">
         {game.locationName} · {game.area}
       </p>
+
+      {match && (
+        <div className="mt-3">
+          <MatchLabel match={match} compact />
+        </div>
+      )}
 
       <p className="mt-3 text-sm font-semibold text-vermilion-ink">
         {game.dateTimeDisplay}

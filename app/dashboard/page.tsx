@@ -82,7 +82,7 @@ export default async function DashboardPage() {
           ) : (
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {recommendedGames.map((game) => (
-                <GameCard key={game.id} game={game} />
+                <GameCard key={game.id} game={game} profile={profile} />
               ))}
             </div>
           )}
@@ -110,7 +110,7 @@ export default async function DashboardPage() {
           ) : (
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {joinedGames.map((game) => (
-                <GameCard key={game.id} game={game} />
+                <GameCard key={game.id} game={game} profile={profile} />
               ))}
             </div>
           )}

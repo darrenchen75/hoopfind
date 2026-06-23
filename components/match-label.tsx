@@ -7,7 +7,13 @@ const labelStyles: Record<MatchLabel, string> = {
   "Missing Profile Info": "border-line text-muted",
 };
 
-export default function MatchLabel({ match }: { match: MatchResult }) {
+export default function MatchLabel({
+  match,
+  compact = false,
+}: {
+  match: MatchResult;
+  compact?: boolean;
+}) {
   return (
     <div>
       <span
@@ -15,7 +21,9 @@ export default function MatchLabel({ match }: { match: MatchResult }) {
       >
         {match.label}
       </span>
-      <p className="mt-2 text-sm leading-6 text-muted">{match.reason}</p>
+      {!compact && (
+        <p className="mt-2 text-sm leading-6 text-muted">{match.reason}</p>
+      )}
     </div>
   );
 }
