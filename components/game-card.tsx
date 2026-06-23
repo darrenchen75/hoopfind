@@ -49,6 +49,11 @@ export default function GameCard({
           {game.gameType}
         </span>
         <div className="flex items-center gap-2">
+          {game.isCanceled && (
+            <span className="shrink-0 bg-vermilion-ink px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-paper">
+              Canceled
+            </span>
+          )}
           {match && <MatchBadge match={match} />}
           <SpotsBadge spotsLeft={spotsLeft} />
         </div>
