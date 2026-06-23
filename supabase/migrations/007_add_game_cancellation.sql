@@ -1,6 +1,24 @@
 alter table public.games
   add column canceled_at timestamptz;
 
+-- Tighten the update policy: a creator may only edit/cancel a game that has not
+-- started and is not already canceled. USING gates the pre-update row (so a
+-- started or canceled game is unwritable); WITH CHECK only re-asserts ownership,
+-- which lets the cancel write set canceled_at while still blocking edits once a
+-- game is canceled (the next update's USING sees canceled_at is not null).
+drop policy "Users can update their own games" on public.games;
+
+create policy "Users can update their own upcoming games"
+  on public.games
+  for update
+  to authenticated
+  using (
+    auth.uid() = creator_id
+    and starts_at > now()
+    and canceled_at is null
+  )
+  with check (auth.uid() = creator_id);
+
 create or replace function public.join_game(target_game_id uuid)
   returns void
   language plpgsql
