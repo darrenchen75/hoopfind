@@ -1,42 +1,56 @@
 # HoopFind
+
 Skill-based pickup basketball discovery. HoopFind helps players find pickup
-runs that actually match their skill level, competitiveness, location, and
-availability; rather than just going to the nearest court and hoping for the best.
+runs that match their skill level, competitiveness, location, and availability —
+rather than going to the nearest court and hoping for the best.
 
 ## Tech stack
-- **Next.js 16** (App Router)
+
+- **Next.js 16**
 - **React 19**
 - **TypeScript**
 - **Tailwind CSS 4**
+- **Supabase**
 
-## Prototype features
-The current prototype is a clickable, frontend-only walkthrough:
+## Features
+
 - **Home (`/`)** — landing page with overview and calls to action.
-- **Browse games (`/games`)** — grid of public pickup runs.
-- **Game detail (`/games/[id]`)** — run details, a skill-match label, and a
-  joined-players / attendance preview.
-- **Dashboard (`/dashboard`)** — recommended and joined games for a sample player.
-- **Create game (`/games/new`)** — static form for posting a run.
-- **Profile setup (`/profile/setup`)** — static form for building a player profile.
+- **Sign up / Log in (`/signup`, `/login`)** — email auth via Supabase.
+- **Browse games (`/games`)** — grid of public pickup runs with skill-match labels and filters.
+- **Game detail (`/games/[id]`)** — run details, skill-match label, roster, and attendance.
+- **Dashboard (`/dashboard`)** — recommended and joined games for the signed-in player.
+- **Create game (`/games/new`)** — post a run for others to join.
+- **Profile setup (`/profile/setup`)** — build a player profile to find suitable competition.
+
+Protected routes (`/dashboard`, `/profile/setup`, `/games/new`) redirect to login when signed out.
 
 ## Local setup
+
 Requires Node.js 20+.
+
+Create `.env.local` with your Supabase project credentials:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+```
+
+Apply the database schema by running the migrations in `supabase/migrations/`
+against your Supabase project (e.g. via the Supabase SQL editor or CLI).
+
+Install and run:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000).
 
 Other scripts:
+
 ```bash
 npm run build
 npm start
 npm run lint
 ```
-
-## Milestone 1 note
-This is a **static prototype**. All content is driven by fake/static data
-(`lib/fake-data.ts`) and the forms do not submit anywhere. There is no auth,
-database, or server-side persistence yet. Those will arrive in later milestones.
