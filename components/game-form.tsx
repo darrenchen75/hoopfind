@@ -5,52 +5,39 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { field, label, btnPrimary, errorPanel, successPanel } from "@/lib/ui";
+import {
+  emptyGame,
+  fieldsToRow,
+  validate,
+  gameTypes,
+  competitivenessLevels,
+  skillLevels,
+  type GameFields,
+} from "@/lib/game-fields";
 
-const gameTypes = ["3v3", "4v4", "5v5", "Open Run"];
-const competitivenessLevels = ["Casual", "Competitive", "Highly Competitive"];
-const skillLevels = ["Beginner", "Intermediate", "Advanced", "Elite"];
-
-type GameFields = {
-  title: string;
-  location_name: string;
-  area: string;
-  date: string;
-  time: string;
-  game_type: string;
-  max_players: string;
-  competitiveness: string;
-  min_skill_level: string;
-  max_skill_level: string;
-  notes: string;
+type Props = {
+  mode: "create" | "edit";
+  gameId?: string;
+  initial?: GameFields;
 };
 
-const emptyGame: GameFields = {
-  title: "",
-  location_name: "",
-  area: "",
-  date: "",
-  time: "",
-  game_type: gameTypes[0],
-  max_players: "",
-  competitiveness: competitivenessLevels[0],
-  min_skill_level: skillLevels[0],
-  max_skill_level: skillLevels[0],
-  notes: "",
-};
-
-export default function CreateGameForm() {
+export default function GameForm({ mode, gameId, initial }: Props) {
   const router = useRouter();
-  const [status, setStatus] = useState<"loading" | "unauthenticated" | "ready">("loading");
+  const [status, setStatus] = useState<"loading" | "unauthenticated" | "ready">(
+    mode === "edit" ? "ready" : "loading",
+  );
   const [userId, setUserId] = useState<string | null>(null);
-  const [fields, setFields] = useState<GameFields>(emptyGame);
+  const [fields, setFields] = useState<GameFields>(initial ?? emptyGame);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Create needs the signed-in user's id for the insert; edit is already
+  // guarded + prefilled on the server, so it skips the auth round-trip.
   useEffect(() => {
+    if (mode === "edit") return;
     let active = true;
     const supabase = createClient();
-
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!active) return;
       if (!user) {
@@ -60,86 +47,57 @@ export default function CreateGameForm() {
       setUserId(user.id);
       setStatus("ready");
     });
-
     return () => {
       active = false;
     };
-  }, []);
+  }, [mode]);
 
   function update<K extends keyof GameFields>(key: K, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }));
   }
 
-  function validate(): string | null {
-    const required: [keyof GameFields, string][] = [
-      ["title", "Game title"],
-      ["location_name", "Location name"],
-      ["area", "City / area"],
-      ["date", "Date"],
-      ["time", "Time"],
-      ["max_players", "Max players"],
-    ];
-    for (const [key, label] of required) {
-      if (!fields[key].trim()) {
-        return `${label} is required.`;
-      }
-    }
-
-    const maxPlayers = Number(fields.max_players);
-    if (!Number.isInteger(maxPlayers) || maxPlayers <= 0) {
-      return "Max players must be a positive whole number.";
-    }
-
-    if (skillLevels.indexOf(fields.max_skill_level) < skillLevels.indexOf(fields.min_skill_level)) {
-      return "Maximum skill level cannot be below the minimum skill level.";
-    }
-
-    const startsAt = new Date(`${fields.date}T${fields.time}`);
-    if (Number.isNaN(startsAt.getTime())) {
-      return "The date and time combination is not valid.";
-    }
-
-    return null;
-  }
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!userId) return;
-
     setError(null);
     setSuccess(null);
 
-    const validationError = validate();
+    const validationError = validate(fields);
     if (validationError) {
       setError(validationError);
       return;
     }
 
     setSaving(true);
-
-    const startsAt = new Date(`${fields.date}T${fields.time}`);
     const supabase = createClient();
-    const { error } = await supabase.from("games").insert({
-      creator_id: userId,
-      title: fields.title.trim(),
-      location_name: fields.location_name.trim(),
-      area: fields.area.trim(),
-      starts_at: startsAt.toISOString(),
-      game_type: fields.game_type,
-      max_players: Number(fields.max_players),
-      competitiveness: fields.competitiveness,
-      min_skill_level: fields.min_skill_level,
-      max_skill_level: fields.max_skill_level,
-      notes: fields.notes.trim() || null,
-      is_public: true,
-    });
 
+    if (mode === "edit") {
+      const { error } = await supabase
+        .from("games")
+        .update(fieldsToRow(fields))
+        .eq("id", gameId!);
+      if (error) {
+        setError(error.message);
+        setSaving(false);
+        return;
+      }
+      setSuccess("Changes saved! Redirecting…");
+      router.push(`/games/${gameId}`);
+      router.refresh();
+      return;
+    }
+
+    if (!userId) {
+      setSaving(false);
+      return;
+    }
+    const { error } = await supabase
+      .from("games")
+      .insert(fieldsToRow(fields, userId));
     if (error) {
       setError(error.message);
       setSaving(false);
       return;
     }
-
     setSuccess("Game created! Redirecting…");
     router.push("/dashboard");
   }
@@ -357,11 +315,11 @@ export default function CreateGameForm() {
           disabled={saving}
           className={btnPrimary}
         >
-          {saving ? "Creating…" : "Create game"}
+          {saving ? (mode === "edit" ? "Saving…" : "Creating…") : (mode === "edit" ? "Save changes" : "Create game")}
         </button>
 
         <Link
-          href="/dashboard"
+          href={mode === "edit" ? `/games/${gameId}` : "/dashboard"}
           className="text-center text-sm font-bold uppercase tracking-wide text-muted transition hover:text-ink"
         >
           Cancel and go back
