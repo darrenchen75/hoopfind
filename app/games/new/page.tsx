@@ -1,5 +1,5 @@
 import SiteHeader from "@/components/site-header";
-import CreateGameForm from "@/components/create-game-form";
+import GameForm from "@/components/game-form";
 
 export default function NewGamePage() {
   return (
@@ -19,7 +19,7 @@ export default function NewGamePage() {
           </p>
         </div>
 
-        <CreateGameForm />
+        <GameForm mode="create" />
       </section>
     </main>
   );
