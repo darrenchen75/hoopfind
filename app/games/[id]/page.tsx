@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CancelGameButton from "@/components/cancel-game-button";
 import GameParticipationButton from "@/components/game-participation-button";
 import GameRoster from "@/components/game-roster";
 import HostAttendanceManager from "@/components/host-attendance-manager";
 import MatchLabel from "@/components/match-label";
 import SiteHeader from "@/components/site-header";
+import { btnPrimary } from "@/lib/ui";
 import { fetchPublicGameById, isGameStarted, isUuid } from "@/lib/games";
 import { getMatch } from "@/lib/match";
 import { getGameParticipation } from "@/lib/participation";
@@ -85,6 +87,12 @@ export default async function GameDetailPage({
             {game.dateTimeDisplay}
           </p>
 
+          {game.isCanceled && (
+            <p className="mt-4 border-2 border-vermilion-ink bg-vermilion-ink/10 px-4 py-2 text-sm font-bold uppercase tracking-wide text-vermilion-ink">
+              Canceled by the host
+            </p>
+          )}
+
           <div className="mt-8 border-2 border-ink bg-paper p-5">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-muted">
               Your match
@@ -93,16 +101,31 @@ export default async function GameDetailPage({
           </div>
 
           <div className="mt-8">
-            <GameParticipationButton
-              gameId={game.id}
-              isAuthenticated={participation.isAuthenticated}
-              status={participation.status}
-              participationError={participation.error}
-              currentPlayers={game.currentPlayers}
-              maxPlayers={game.maxPlayers}
-              hasStarted={hasStarted}
-            />
+            {game.isCanceled ? (
+              <p className="text-base font-medium text-muted">
+                This game was canceled by the host.
+              </p>
+            ) : (
+              <GameParticipationButton
+                gameId={game.id}
+                isAuthenticated={participation.isAuthenticated}
+                status={participation.status}
+                participationError={participation.error}
+                currentPlayers={game.currentPlayers}
+                maxPlayers={game.maxPlayers}
+                hasStarted={hasStarted}
+              />
+            )}
           </div>
+
+          {isCreator && !hasStarted && !game.isCanceled && (
+            <div className="mt-6 flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center">
+              <Link href={`/games/${game.id}/edit`} className={btnPrimary}>
+                Edit game
+              </Link>
+              <CancelGameButton gameId={game.id} />
+            </div>
+          )}
 
           <dl className="mt-10 grid gap-x-6 gap-y-6 border-t border-line pt-8 sm:grid-cols-2">
             <div>
