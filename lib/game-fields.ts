@@ -59,6 +59,10 @@ export function validate(fields: GameFields): string | null {
     return "The date and time combination is not valid.";
   }
 
+  if (startsAt.getTime() <= Date.now()) {
+    return "The game must start in the future.";
+  }
+
   return null;
 }
 

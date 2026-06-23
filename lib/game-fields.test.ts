@@ -15,9 +15,30 @@ const valid: GameFields = {
   notes: "Bring a light and dark shirt.",
 };
 
+// Generate date/time fields relative to now so the tests don't rot the way a
+// hard-coded "2030-01-01" eventually would. ±7 days keeps them clear of any
+// same-day or DST boundary near the current moment.
+function offsetDateFields(days: number): Pick<GameFields, "date" | "time"> {
+  const d = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  };
+}
+
+const futureDateFields = () => offsetDateFields(7);
+const pastDateFields = () => offsetDateFields(-7);
+
+// A fully-valid game whose start is in the future, so it survives the
+// future-start check. Use this instead of `valid` wherever a test needs to
+// pass validation. `valid` keeps its fixed date only for tests that fail
+// before the date is ever checked.
+const futureValid: GameFields = { ...valid, ...futureDateFields() };
+
 describe("validate", () => {
   it("returns null for a valid game", () => {
-    expect(validate(valid)).toBeNull();
+    expect(validate(futureValid)).toBeNull();
   });
 
   it("flags a missing required field with its label", () => {
@@ -41,25 +62,31 @@ describe("validate", () => {
   it("rejects an unparseable date/time", () => {
     expect(validate({ ...valid, date: "", time: "" })).not.toBeNull();
   });
+
+  it("rejects a start time in the past", () => {
+    expect(validate({ ...valid, ...pastDateFields() })).toBe(
+      "The game must start in the future.",
+    );
+  });
 });
 
 describe("fieldsToRow", () => {
   it("builds an ISO starts_at and trims strings", () => {
-    const row = fieldsToRow(valid);
+    const row = fieldsToRow(futureValid);
     expect(typeof row.starts_at).toBe("string");
     expect(row.title).toBe("Saturday Run");
     expect(row).not.toHaveProperty("date");
   });
 
   it("includes creator_id and is_public only when a creatorId is given", () => {
-    expect(fieldsToRow(valid)).not.toHaveProperty("creator_id");
-    const owned = fieldsToRow(valid, "user-1");
+    expect(fieldsToRow(futureValid)).not.toHaveProperty("creator_id");
+    const owned = fieldsToRow(futureValid, "user-1");
     expect(owned.creator_id).toBe("user-1");
     expect(owned.is_public).toBe(true);
   });
 
   it("maps empty notes to null", () => {
-    expect(fieldsToRow({ ...valid, notes: "   " }).notes).toBeNull();
+    expect(fieldsToRow({ ...futureValid, notes: "   " }).notes).toBeNull();
   });
 
   it("emptyGame fails validation (date/time blank)", () => {
