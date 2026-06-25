@@ -4,6 +4,7 @@ import GameForm from "@/components/game-form";
 import SiteHeader from "@/components/site-header";
 import { fetchGameForEdit, isGameStarted, isUuid } from "@/lib/games";
 import type { GameFields } from "@/lib/game-fields";
+import { utcIsoToWallClockParts } from "@/lib/datetime";
 
 export default async function EditGamePage({
   params,
@@ -24,20 +25,20 @@ export default async function EditGamePage({
     redirect(`/games/${id}`);
   }
 
-  const starts = new Date(row.starts_at);
-  const pad = (n: number) => String(n).padStart(2, "0");
+  const { date, time } = utcIsoToWallClockParts(row.starts_at, row.timezone);
   const initial: GameFields = {
     title: row.title,
     location_name: row.location_name,
     area: row.area,
-    date: `${starts.getFullYear()}-${pad(starts.getMonth() + 1)}-${pad(starts.getDate())}`,
-    time: `${pad(starts.getHours())}:${pad(starts.getMinutes())}`,
+    date,
+    time,
     game_type: row.game_type,
     max_players: String(row.max_players),
     competitiveness: row.competitiveness,
     min_skill_level: row.min_skill_level,
     max_skill_level: row.max_skill_level,
     notes: row.notes ?? "",
+    timezone: row.timezone,
   };
 
   return (
