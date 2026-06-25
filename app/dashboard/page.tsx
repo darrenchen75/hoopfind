@@ -5,9 +5,12 @@ import {
   fetchCurrentUserHostedGames,
   fetchCurrentUserJoinedGames,
   fetchCurrentUserPastHostedGames,
+  fetchCurrentUserPastJoinedGames,
   fetchPublicGames,
 } from "@/lib/games";
 import { getCurrentProfile, isProfileComplete } from "@/lib/profiles";
+import { getCurrentUserAttendanceCounts } from "@/lib/participation";
+import { reliability } from "@/lib/reliability";
 import { getMatch } from "@/lib/match";
 import { btnPrimary } from "@/lib/ui";
 
@@ -18,14 +21,24 @@ export default async function DashboardPage() {
     { games: hostedGames, error: hostedError },
     { games: pastHostedGames, error: pastHostedError },
     profile,
+    { games: pastJoinedGames, error: pastJoinedError },
+    attendance,
   ] = await Promise.all([
     fetchPublicGames(3),
     fetchCurrentUserJoinedGames(),
     fetchCurrentUserHostedGames(),
     fetchCurrentUserPastHostedGames(),
     getCurrentProfile(),
+    fetchCurrentUserPastJoinedGames(),
+    getCurrentUserAttendanceCounts(),
   ]);
   const displayName = profile?.displayName;
+  const { pct, decided } = reliability(attendance.attended, attendance.missed);
+  const showUpText = attendance.error
+    ? null
+    : decided === 0
+      ? "Show-up rate: New"
+      : `Show-up rate: ${pct}% · ${attendance.attended}/${decided} marked games`;
 
   return (
     <main className="min-h-screen bg-paper text-ink">
@@ -43,6 +56,11 @@ export default async function DashboardPage() {
             <p className="mt-4 max-w-2xl text-lg leading-8 text-muted">
               Browse upcoming public runs and the games you&apos;ve joined.
             </p>
+            {showUpText && (
+              <p className="mt-3 text-sm font-bold uppercase tracking-wide text-vermilion-ink">
+                {showUpText}
+              </p>
+            )}
           </div>
 
           <Link
@@ -171,6 +189,36 @@ export default async function DashboardPage() {
             )}
           </div>
         )}
+
+        <div className="mt-12">
+          <h2 className="font-display text-2xl font-semibold uppercase tracking-tight">Past games</h2>
+          <p className="mt-1 text-sm text-muted">Runs you&apos;ve already played.</p>
+
+          {pastJoinedError ? (
+            <p className="mt-6 border-2 border-vermilion-ink bg-vermilion-ink/10 p-6 text-vermilion-ink">
+              We couldn&apos;t load your past games right now. Please try again later.
+            </p>
+          ) : pastJoinedGames.length === 0 ? (
+            <p className="mt-6 border-2 border-ink bg-paper p-6 text-muted">
+              No past games yet.
+            </p>
+          ) : (
+            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {pastJoinedGames.map(({ game, status }) => (
+                <div key={game.id} className="flex flex-col gap-2">
+                  <span className="self-start border border-ink px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-ink">
+                    {status === "attended"
+                      ? "Played"
+                      : status === "missed"
+                        ? "Missed"
+                        : "Not marked"}
+                  </span>
+                  <GameCard game={game} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
     </main>
   );

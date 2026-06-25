@@ -1,6 +1,11 @@
 import { getCurrentUserId } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { fetchParticipantCounts, getJoinedGameIds } from "@/lib/participation";
+import {
+  fetchParticipantCounts,
+  getJoinedGameIds,
+  toParticipationStatus,
+  type ParticipationStatus,
+} from "@/lib/participation";
 import type {
   Competitiveness,
   GameType,
@@ -202,6 +207,66 @@ export async function fetchCurrentUserPastHostedGames(): Promise<{
     games: (data as GameRow[]).map((row) =>
       mapGameRow(row, counts.get(row.id) ?? 0),
     ),
+    error: false,
+  };
+}
+
+// The user's 6 most recent past games they participated in, with their own
+// status. Reads the user's own game_participants rows (all statuses), so it
+// must NOT reuse getJoinedGameIds() — that helper returns only currently
+// joined rows and would drop past attended/missed games.
+export async function fetchCurrentUserPastJoinedGames(): Promise<{
+  games: { game: PickupGame; status: ParticipationStatus }[];
+  error: boolean;
+}> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { games: [], error: false };
+  }
+
+  const supabase = await createClient();
+
+  const { data: partData, error: partError } = await supabase
+    .from("game_participants")
+    .select("game_id, status")
+    .eq("user_id", userId);
+
+  if (partError) {
+    return { games: [], error: true };
+  }
+
+  const statusByGame = new Map<string, ParticipationStatus>();
+  for (const row of partData as { game_id: string; status: string }[]) {
+    const status = toParticipationStatus(row.status);
+    if (status) {
+      statusByGame.set(row.game_id, status);
+    }
+  }
+
+  if (statusByGame.size === 0) {
+    return { games: [], error: false };
+  }
+
+  const { data, error } = await supabase
+    .from("games")
+    .select(GAME_COLUMNS)
+    .in("id", [...statusByGame.keys()])
+    .lt("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: false })
+    .limit(6);
+
+  if (error) {
+    return { games: [], error: true };
+  }
+
+  const counts = await fetchParticipantCounts();
+
+  return {
+    games: (data as GameRow[]).map((row) => ({
+      game: mapGameRow(row, counts.get(row.id) ?? 0),
+      // Non-null: every returned game id came from statusByGame.
+      status: statusByGame.get(row.id)!,
+    })),
     error: false,
   };
 }

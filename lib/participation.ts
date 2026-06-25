@@ -101,3 +101,40 @@ export async function getGameParticipation(
     error: false,
   };
 }
+
+export interface AttendanceCounts {
+  attended: number;
+  missed: number;
+  error: boolean;
+}
+
+// All-time decided attendance for the current user, counted from their own
+// game_participants rows — not from any 6-item display list.
+export async function getCurrentUserAttendanceCounts(): Promise<AttendanceCounts> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { attended: 0, missed: 0, error: false };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("game_participants")
+    .select("status")
+    .eq("user_id", userId)
+    .in("status", ["attended", "missed"]);
+
+  if (error) {
+    return { attended: 0, missed: 0, error: true };
+  }
+
+  let attended = 0;
+  let missed = 0;
+  for (const row of data as { status: string }[]) {
+    if (row.status === "attended") {
+      attended += 1;
+    } else if (row.status === "missed") {
+      missed += 1;
+    }
+  }
+  return { attended, missed, error: false };
+}
