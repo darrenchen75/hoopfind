@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { validate, fieldsToRow, emptyGame, type GameFields } from "./game-fields";
+import { wallClockToUtcIso } from "./datetime";
 
 const valid: GameFields = {
   title: "Saturday Run",
@@ -91,5 +92,24 @@ describe("fieldsToRow", () => {
 
   it("emptyGame fails validation (date/time blank)", () => {
     expect(validate(emptyGame)).not.toBeNull();
+  });
+
+  it("captures a non-empty timezone when none is provided (create)", () => {
+    const row = fieldsToRow(futureValid);
+    expect(typeof row.timezone).toBe("string");
+    expect((row.timezone as string).length).toBeGreaterThan(0);
+  });
+
+  it("preserves a provided timezone and converts starts_at in it (edit)", () => {
+    const row = fieldsToRow({ ...futureValid, timezone: "America/Los_Angeles" });
+    expect(row.timezone).toBe("America/Los_Angeles");
+    expect(row.starts_at).toBe(
+      wallClockToUtcIso(futureValid.date, futureValid.time, "America/Los_Angeles"),
+    );
+  });
+
+  it("falls back to the default for an invalid provided timezone", () => {
+    const row = fieldsToRow({ ...futureValid, timezone: "Not/AZone" });
+    expect(row.timezone).toBe("America/New_York");
   });
 });

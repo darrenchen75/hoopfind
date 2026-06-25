@@ -1,3 +1,5 @@
+import { getBrowserTimeZone, normalizeTimeZone, wallClockToUtcIso } from "./datetime";
+
 export const gameTypes = ["3v3", "4v4", "5v5", "Open Run"];
 export const competitivenessLevels = ["Casual", "Competitive", "Highly Competitive"];
 export const skillLevels = ["Beginner", "Intermediate", "Advanced", "Elite"];
@@ -14,6 +16,7 @@ export type GameFields = {
   min_skill_level: string;
   max_skill_level: string;
   notes: string;
+  timezone?: string;
 };
 
 export const emptyGame: GameFields = {
@@ -28,7 +31,15 @@ export const emptyGame: GameFields = {
   min_skill_level: skillLevels[0],
   max_skill_level: skillLevels[0],
   notes: "",
+  timezone: "",
 };
+
+// A stored zone (edit) is normalized; an empty zone (create) falls back to the
+// browser's zone. The resolved value is what gets stored.
+function resolveTimeZone(timezone: string | undefined): string {
+  const provided = (timezone ?? "").trim();
+  return provided ? normalizeTimeZone(provided) : getBrowserTimeZone();
+}
 
 export function validate(fields: GameFields): string | null {
   const required: [keyof GameFields, string][] = [
@@ -54,7 +65,8 @@ export function validate(fields: GameFields): string | null {
     return "Maximum skill level cannot be below the minimum skill level.";
   }
 
-  const startsAt = new Date(`${fields.date}T${fields.time}`);
+  const timeZone = resolveTimeZone(fields.timezone);
+  const startsAt = new Date(wallClockToUtcIso(fields.date, fields.time, timeZone));
   if (Number.isNaN(startsAt.getTime())) {
     return "The date and time combination is not valid.";
   }
@@ -70,11 +82,13 @@ export function fieldsToRow(
   fields: GameFields,
   creatorId?: string,
 ): Record<string, unknown> {
+  const timeZone = resolveTimeZone(fields.timezone);
   const row: Record<string, unknown> = {
     title: fields.title.trim(),
     location_name: fields.location_name.trim(),
     area: fields.area.trim(),
-    starts_at: new Date(`${fields.date}T${fields.time}`).toISOString(),
+    starts_at: wallClockToUtcIso(fields.date, fields.time, timeZone),
+    timezone: timeZone,
     game_type: fields.game_type,
     max_players: Number(fields.max_players),
     competitiveness: fields.competitiveness,
