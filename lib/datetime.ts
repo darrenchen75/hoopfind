@@ -45,6 +45,10 @@ export function wallClockToUtcIso(date: string, time: string, timeZone: string):
   const [h, mi] = time.split(":").map(Number);
   const target = Date.UTC(y, mo - 1, d, h, mi);
 
+  if (Number.isNaN(target)) {
+    return ""; // unparseable date/time — callers' Invalid-Date guard handles it
+  }
+
   let utc = target;
   for (let pass = 0; pass < 2; pass++) {
     const diff = zoneWallClockAsUtc(utc, zone) - target; // ms the zone is ahead of target

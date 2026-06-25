@@ -49,6 +49,10 @@ describe("wallClockToUtcIso", () => {
       wallClockToUtcIso("2026-07-01", "09:00", DEFAULT_TIME_ZONE),
     );
   });
+  it("returns empty string (no throw) for unparseable input", () => {
+    expect(() => wallClockToUtcIso("garbage", "09:00", "America/New_York")).not.toThrow();
+    expect(wallClockToUtcIso("garbage", "09:00", "America/New_York")).toBe("");
+  });
 });
 
 describe("utcIsoToWallClockParts", () => {

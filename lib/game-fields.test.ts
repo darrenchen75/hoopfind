@@ -69,6 +69,13 @@ describe("validate", () => {
       "The game must start in the future.",
     );
   });
+
+  it("rejects a non-empty unparseable date without throwing", () => {
+    expect(() => validate({ ...valid, date: "garbage" })).not.toThrow();
+    expect(validate({ ...valid, date: "garbage" })).toBe(
+      "The date and time combination is not valid.",
+    );
+  });
 });
 
 describe("fieldsToRow", () => {
