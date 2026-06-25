@@ -58,11 +58,25 @@ Test cases:
 
 ### 2. Roster show-up rate — DB + roster UI
 
-**Migration `009_add_roster_reliability.sql`:** drop and recreate
-`public.get_game_roster` (security definer, `set search_path = ''`,
-unchanged access rules — caller must be creator or participant).
+**Migration `009_add_roster_reliability.sql`:** because the return-table shape
+of `public.get_game_roster(uuid)` changes, use **drop + create**, not
+`create or replace` (Postgres rejects an OUT-column change via replace).
 
-Add two columns to the returned table:
+Required pattern:
+
+- `drop function if exists public.get_game_roster(uuid);`
+- recreate `public.get_game_roster(target_game_id uuid)` (security definer,
+  `set search_path = ''`) with the **existing authorization logic unchanged**:
+  - raise if `auth.uid()` is null,
+  - raise if the game does not exist,
+  - allow only if caller is the game **creator** OR caller has a
+    **participation row** for that game; otherwise raise.
+- include the new `attended_count integer` and `missed_count integer` return
+  columns
+- `revoke all on function public.get_game_roster(uuid) from public, anon;`
+- `grant execute on function public.get_game_roster(uuid) to authenticated;`
+
+Added columns on the returned table:
 
 - `attended_count integer`
 - `missed_count integer`
@@ -120,17 +134,29 @@ players. The database function remains the final authorization layer.
 `fetchCurrentUserPastHostedGames()`:
 
 - current authenticated user only (no user → empty, no error)
-- games the user **joined** (participant rows for this user)
+- games the user participated in (participant rows for this user)
 - `starts_at < now()`
 - order `starts_at` descending
 - `limit 6`
 - returns each game **plus the current user's own participation status**
 
+**Do not reuse `getJoinedGameIds()`.** That helper filters
+`status = 'joined'`, i.e. only *currently* joined rows — it would drop exactly
+the past games we want. Past games must include the current user's own
+participation rows across all three statuses:
+
+- `joined`
+- `attended`
+- `missed`
+
+Query approach: read the current user's own `game_participants` rows directly
+(by `user_id = auth.uid()`), then fetch the matching games (`starts_at < now()`,
+desc, limit 6) and attach the user's own `status` to each returned game. The
+status comes from the user's own row; no host privileges needed.
+
 Return shape: `{ games: Array<{ game: PickupGame; status: ParticipationStatus }>, error: boolean }`
 (or `PickupGame` extended with `myStatus` — decided at implementation, must
-carry the per-game status). Status comes from the user's own
-`game_participants.status` for that game; no host privileges needed since the
-user reads their own rows.
+carry the per-game status).
 
 **Dashboard section titled `Past games`**, mirroring the existing
 `Past hosted games` block. Each card shows a status badge derived from the
@@ -142,6 +168,12 @@ user's own status:
 
 `joined` is counted as neither played nor missed. Canceled games, if returned,
 still render with the existing canceled badge.
+
+**Empty / error states** (mirror the existing dashboard blocks):
+
+- No past joined games and no error → small message `No past games yet.`
+- Query error → a readable message (e.g. "We couldn't load your past games
+  right now. Please try again later."). Never render raw Supabase error text.
 
 ### 4. Dashboard own show-up rate
 
