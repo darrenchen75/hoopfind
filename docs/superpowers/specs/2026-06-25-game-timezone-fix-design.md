@@ -76,8 +76,10 @@ display, edit prefill) to that zone via native `Intl`.
 ### In scope
 
 - New migration adding `games.timezone` with a kept default.
-- New `lib/datetime.ts` holding `getBrowserTimeZone`, `wallClockToUtcIso`, and
-  `utcIsoToWallClockParts`.
+- New `lib/datetime.ts` holding `DEFAULT_TIME_ZONE`, `normalizeTimeZone`,
+  `getBrowserTimeZone`, `wallClockToUtcIso`, and `utcIsoToWallClockParts`. Every
+  zone-consuming helper normalizes its input so a bad stored value cannot throw
+  during server rendering.
 - `GameFields` carrying a `timezone` field; create initializes it empty (→
   browser), edit initializes it from `game.timezone`.
 - `fieldsToRow` resolving the timezone and converting `starts_at` in that zone;
@@ -121,50 +123,76 @@ The default is intentionally **not** dropped.
 
 ### 2. `lib/datetime.ts` — shared timezone helpers (new)
 
-Native `Intl` only. `wallClockToUtcIso` and `utcIsoToWallClockParts` are pure and
-safe to run on the server; `getBrowserTimeZone` is browser-only.
+Native `Intl` only. Every helper that consumes a timezone runs it through
+`normalizeTimeZone` first, so a bad value stored in the `games.timezone` text
+column (or passed by a caller) falls back to the default instead of throwing —
+critical because `formatStartsAt` and `utcIsoToWallClockParts` run during server
+rendering. `wallClockToUtcIso` and `utcIsoToWallClockParts` are pure and
+server-safe; `getBrowserTimeZone` is browser-only.
 
 ```ts
-// Browser-only: the creator's resolved IANA zone, with a safe fallback.
-export function getBrowserTimeZone(): string {
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz) {
-      new Intl.DateTimeFormat("en-US", { timeZone: tz }); // throws on bad name
-      return tz;
-    }
-  } catch {
-    // fall through
+export const DEFAULT_TIME_ZONE = "America/New_York";
+
+// Returns a usable IANA zone, falling back to the default for empty/invalid input.
+export function normalizeTimeZone(timeZone: string | null | undefined): string {
+  const candidate = timeZone?.trim();
+  if (!candidate) {
+    return DEFAULT_TIME_ZONE;
   }
-  return "America/New_York";
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: candidate }); // throws on bad name
+    return candidate;
+  } catch {
+    return DEFAULT_TIME_ZONE;
+  }
 }
 
-// The instant `timeZone`'s wall clock reads `date`/`time`, as a UTC ISO string.
-// Offset trick: interpret the wall-clock as if UTC, see what that instant reads
-// as in `timeZone`, and subtract the resulting offset. Native Intl, no library.
-export function wallClockToUtcIso(date: string, time: string, timeZone: string): string {
-  const [y, mo, d] = date.split("-").map(Number);
-  const [h, mi] = time.split(":").map(Number);
-  const asUtc = Date.UTC(y, mo - 1, d, h, mi);
+// Browser-only: the creator's resolved IANA zone, normalized with a safe fallback.
+export function getBrowserTimeZone(): string {
+  try {
+    return normalizeTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  } catch {
+    return DEFAULT_TIME_ZONE;
+  }
+}
 
+// Reads the instant `ms` as wall-clock in `zone`, returned as a UTC epoch (ms).
+function zoneWallClockAsUtc(ms: number, zone: string): number {
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
+    timeZone: zone,
     year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit", second: "2-digit",
     hourCycle: "h23",
-  }).formatToParts(new Date(asUtc));
+  }).formatToParts(new Date(ms));
   const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
-  const zoneAsUtc = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+  return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
 
-  const offset = zoneAsUtc - asUtc; // ms the zone is ahead of UTC at this instant
-  return new Date(asUtc - offset).toISOString();
+// The instant whose wall clock in `timeZone` reads `date`/`time`, as a UTC ISO
+// string. Offset trick: interpret the wall-clock as if UTC, measure how that
+// instant reads back in the zone, and correct. A second pass fixes the case
+// where the first correction crossed a DST boundary into a different offset.
+export function wallClockToUtcIso(date: string, time: string, timeZone: string): string {
+  const zone = normalizeTimeZone(timeZone);
+  const [y, mo, d] = date.split("-").map(Number);
+  const [h, mi] = time.split(":").map(Number);
+  const target = Date.UTC(y, mo - 1, d, h, mi);
+
+  let utc = target;
+  for (let pass = 0; pass < 2; pass++) {
+    const diff = zoneWallClockAsUtc(utc, zone) - target; // ms the zone is ahead of target
+    if (diff === 0) break;
+    utc -= diff;
+  }
+  return new Date(utc).toISOString();
 }
 
 // A UTC ISO instant rendered as <input type="date"> / <input type="time">
 // values in `timeZone`. hourCycle "h23" makes midnight "00", never "24".
 export function utcIsoToWallClockParts(startsAt: string, timeZone: string): { date: string; time: string } {
+  const zone = normalizeTimeZone(timeZone);
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
+    timeZone: zone,
     year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit", hourCycle: "h23",
   }).formatToParts(new Date(startsAt));
@@ -174,10 +202,10 @@ export function utcIsoToWallClockParts(startsAt: string, timeZone: string): { da
 }
 ```
 
-**Known limitation:** the single-pass offset uses the zone offset at the
-provisional instant, so for the ~1-hour nonexistent/ambiguous wall-clock window
-at a DST transition the result can be off by the DST delta. Acceptable for the
-MVP; a second correction pass is the upgrade path if it ever matters.
+**Known limitation:** the two-pass correction resolves ordinary offset and
+normal DST differences (no one-hour drift), but a truly ambiguous or nonexistent
+wall-clock *at the transition instant itself* still resolves only approximately.
+Acceptable for the MVP.
 
 ### 3. `lib/game-fields.ts` — write path
 
@@ -199,13 +227,20 @@ Resolve the timezone once — the field's value when present (edit), otherwise t
 browser zone (create) — and use it for both the future-start check and
 `starts_at`. No `new Date(`${date}T${time}`)` remains in this file.
 
+Resolve the zone the same way in both places: a stored value (edit) is run
+through `normalizeTimeZone`, an empty value (create) falls back to the browser
+zone. The resolved zone is what gets stored, so no invalid string is persisted.
+
 ```ts
-import { getBrowserTimeZone, wallClockToUtcIso } from "@/lib/datetime";
+import { getBrowserTimeZone, normalizeTimeZone, wallClockToUtcIso } from "@/lib/datetime";
+
+// shared resolution, used by both validate() and fieldsToRow():
+const timeZone = fields.timezone.trim()
+  ? normalizeTimeZone(fields.timezone)
+  : getBrowserTimeZone();
 
 // in validate(), replacing the browser-local startsAt computation:
-const timeZone = fields.timezone.trim() || getBrowserTimeZone();
-const startsAtIso = wallClockToUtcIso(fields.date, fields.time, timeZone);
-const startsAt = new Date(startsAtIso);
+const startsAt = new Date(wallClockToUtcIso(fields.date, fields.time, timeZone));
 if (Number.isNaN(startsAt.getTime())) {
   return "The date and time combination is not valid.";
 }
@@ -214,11 +249,12 @@ if (startsAt.getTime() <= Date.now()) {
 }
 
 // in fieldsToRow's row object:
-const timeZone = fields.timezone.trim() || getBrowserTimeZone();
-// ...
 timezone: timeZone,
 starts_at: wallClockToUtcIso(fields.date, fields.time, timeZone),
 ```
+
+(`wallClockToUtcIso` also normalizes internally, so even an unexpected zone here
+cannot throw — this resolution just ensures the *stored* `timezone` is clean.)
 
 Because the edit form always carries the game's stored `timezone`, edit reuses
 that zone and never recaptures the editor's — the stored instant is preserved.
@@ -226,10 +262,14 @@ that zone and never recaptures the editor's — the stored instant is preserved.
 ### 4. `lib/games.ts` — display path
 
 `GameRow` gains `timezone: string`; `GAME_COLUMNS` adds `timezone`.
-`formatStartsAt` takes the zone and pins both parts to it:
+`formatStartsAt` normalizes the zone (a bad stored value must not throw during
+server rendering) and pins both parts to it:
 
 ```ts
-function formatStartsAt(startsAt: string, timeZone: string): string {
+import { normalizeTimeZone } from "@/lib/datetime";
+
+function formatStartsAt(startsAt: string, rawTimeZone: string): string {
+  const timeZone = normalizeTimeZone(rawTimeZone);
   const date = new Date(startsAt);
   const datePart = date.toLocaleDateString("en-US", {
     weekday: "short", month: "short", day: "numeric", timeZone,
@@ -286,6 +326,12 @@ field-level tests extend `lib/game-fields.test.ts`.
 - **Edit round-trip:** start from a UTC instant + `"America/New_York"`, convert
   with `utcIsoToWallClockParts`, convert back with `wallClockToUtcIso` using the
   same zone — the result equals the original instant.
+- **Invalid-zone fallback:** `normalizeTimeZone("Not/AZone")` returns
+  `"America/New_York"`; `normalizeTimeZone("")` / `null` / `undefined` likewise.
+- **Display tolerates a bad zone:** `formatStartsAt` (or the display wrapper) with
+  an invalid timezone does not throw and renders in the default zone.
+- **`fieldsToRow` tolerates a bad zone:** with `timezone: "Not/AZone"`,
+  `fieldsToRow` stores `"America/New_York"` and a matching instant, no throw.
 - **Create includes a timezone:** `fieldsToRow` on a create-style fixture (empty
   `timezone`) returns a non-empty `timezone` string.
 - **Edit preserves the timezone:** `fieldsToRow` on a fixture with
