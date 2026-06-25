@@ -1,4 +1,5 @@
 import { getCurrentUserId } from "@/lib/auth";
+import { formatGameDateTime } from "@/lib/datetime";
 import { createClient } from "@/lib/supabase/server";
 import {
   fetchParticipantCounts,
@@ -13,7 +14,7 @@ import type {
   SkillLevel,
 } from "@/lib/types";
 
-const GAME_COLUMNS = "id, creator_id, title, location_name, area, starts_at, game_type, max_players, competitiveness, min_skill_level, max_skill_level, notes, canceled_at";
+const GAME_COLUMNS = "id, creator_id, title, location_name, area, starts_at, game_type, max_players, competitiveness, min_skill_level, max_skill_level, notes, canceled_at, timezone";
 
 export type GameRow = {
   id: string;
@@ -29,6 +30,7 @@ export type GameRow = {
   max_skill_level: string;
   notes: string | null;
   canceled_at: string | null;
+  timezone: string;
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -41,20 +43,6 @@ export function isGameStarted(startsAt: string): boolean {
   return new Date(startsAt).getTime() <= Date.now();
 }
 
-function formatStartsAt(startsAt: string): string {
-  const date = new Date(startsAt);
-  const datePart = date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-  const timePart = date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return `${datePart} · ${timePart}`;
-}
-
 function mapGameRow(row: GameRow, currentPlayers = 0): PickupGame {
   return {
     id: row.id,
@@ -63,7 +51,7 @@ function mapGameRow(row: GameRow, currentPlayers = 0): PickupGame {
     locationName: row.location_name,
     area: row.area,
     startsAt: row.starts_at,
-    dateTimeDisplay: formatStartsAt(row.starts_at),
+    dateTimeDisplay: formatGameDateTime(row.starts_at, row.timezone),
     gameType: row.game_type as GameType,
     currentPlayers,
     maxPlayers: row.max_players,
