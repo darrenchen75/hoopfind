@@ -9,6 +9,8 @@ export interface RosterEntry {
   skillLevel: string | null;
   primaryPosition: string | null;
   playStyle: string | null;
+  attendedCount: number;
+  missedCount: number;
 }
 
 export interface HostParticipant {
@@ -22,6 +24,8 @@ type RosterRow = {
   skill_level: string | null;
   primary_position: string | null;
   play_style: string | null;
+  attended_count: number | null;
+  missed_count: number | null;
 };
 
 type HostRow = {
@@ -47,6 +51,8 @@ export async function fetchGameRoster(
     skillLevel: r.skill_level,
     primaryPosition: r.primary_position,
     playStyle: r.play_style,
+    attendedCount: Number(r.attended_count ?? 0),
+    missedCount: Number(r.missed_count ?? 0),
   }));
   return { roster, error: false };
 }
