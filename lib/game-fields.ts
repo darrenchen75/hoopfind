@@ -51,7 +51,7 @@ export function validate(fields: GameFields): string | null {
     ["max_players", "Max players"],
   ];
   for (const [key, fieldLabel] of required) {
-    if (!fields[key].trim()) {
+    if (!(fields[key] ?? "").trim()) {
       return `${fieldLabel} is required.`;
     }
   }
