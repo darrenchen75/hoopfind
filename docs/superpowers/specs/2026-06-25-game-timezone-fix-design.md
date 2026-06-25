@@ -28,11 +28,20 @@ server renders it with `toLocaleString` in UTC and shows "1:00 PM". The edit for
 prefills 13:00. Local development hides the bug because the dev machine's TZ
 equals the browser's TZ; it surfaces in production where the server runs in UTC.
 
+Once each game carries its own IANA timezone (below), a second, subtler bug
+appears: interpreting the form's wall-clock with `new Date(`${date}T${time}`)`
+uses the *runtime* timezone, which is no longer the game's timezone. On edit in
+particular — where the game's zone is preserved but the host may be in a
+different browser zone — that would silently move the stored instant. The write
+path must therefore convert the wall-clock using the game's IANA timezone, not
+the runtime's.
+
 ## Goal
 
 A game's start time means the **wall-clock time at the court** — the same time
 for every viewer, independent of the server's or the viewer's timezone. Achieve
-this by recording each game's IANA timezone and pinning all formatting to it.
+this by recording each game's IANA timezone and pinning every conversion (write,
+display, edit prefill) to that zone via native `Intl`.
 
 ## Decisions
 
@@ -43,18 +52,20 @@ this by recording each game's IANA timezone and pinning all formatting to it.
     `Intl.DateTimeFormat().resolvedOptions().timeZone`. No visible picker.
   - On **edit**, preserve the game's existing `timezone`. The editor's current
     browser timezone is **not** recaptured, so a host editing while traveling
-    cannot silently shift the game's wall-clock time.
+    cannot silently shift the game's wall-clock time or its stored instant.
   - HoopFind is currently local/regional (framed around W&M / Virginia pickup
     runs), so the creator's browser zone is an acceptable stand-in for the
     court's zone.
+- **Conversion:** all wall-clock ↔ UTC conversion is pinned to the game's IANA
+  timezone using native `Intl`, never the runtime zone. Shared helpers live in a
+  new `lib/datetime.ts`.
 - **Default timezone:** `America/New_York` — Eastern is the safer MVP default
   given the current Virginia framing. Used both as the DB column default and as
   the in-code fallback when the browser zone cannot be resolved.
 - **Storage:** add a `timezone` column (IANA name, e.g. `America/New_York`).
-  `starts_at` keeps storing the absolute UTC instant, unchanged in mechanism.
+  `starts_at` keeps storing the absolute UTC instant.
 - **Formatting:** every render of `starts_at` passes `{ timeZone }` to `Intl`,
-  making output deterministic regardless of where the code runs (server or any
-  browser).
+  making output deterministic regardless of where the code runs.
 - **Tooling:** native `Intl` only. No date library is added.
 - **Existing data:** backfill the new column via the column default
   (`America/New_York`). Pre-existing rows predate any recorded zone, so this is a
@@ -65,14 +76,15 @@ this by recording each game's IANA timezone and pinning all formatting to it.
 ### In scope
 
 - New migration adding `games.timezone` with a kept default.
-- A `getBrowserTimeZone()` helper with a safe fallback.
+- New `lib/datetime.ts` holding `getBrowserTimeZone`, `wallClockToUtcIso`, and
+  `utcIsoToWallClockParts`.
 - `GameFields` carrying a `timezone` field; create initializes it empty (→
   browser), edit initializes it from `game.timezone`.
-- Capturing/preserving the timezone in `fieldsToRow`.
+- `fieldsToRow` resolving the timezone and converting `starts_at` in that zone;
+  `validate`'s future-start check using the same conversion.
 - Pinning `formatStartsAt` to the game's timezone.
-- Rebuilding the edit-page prefill to read the wall-clock in the game's timezone,
-  with correct midnight handling.
-- Unit tests for write, edit-preserve, display, midnight, and server-TZ
+- Rebuilding the edit-page prefill via `utcIsoToWallClockParts`.
+- Unit tests for conversion, round-trip, midnight, display, and server-TZ
   independence.
 
 ### Out of scope
@@ -107,19 +119,18 @@ alter table public.games
 
 The default is intentionally **not** dropped.
 
-### 2. `lib/game-fields.ts` — write path and helper
+### 2. `lib/datetime.ts` — shared timezone helpers (new)
 
-Add a safe browser-timezone resolver. It falls back to `America/New_York` when
-`Intl` returns nothing or an unusable value (validated by attempting to format
-with the zone, which throws on an invalid IANA name):
+Native `Intl` only. `wallClockToUtcIso` and `utcIsoToWallClockParts` are pure and
+safe to run on the server; `getBrowserTimeZone` is browser-only.
 
 ```ts
+// Browser-only: the creator's resolved IANA zone, with a safe fallback.
 export function getBrowserTimeZone(): string {
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz) {
-      // Throws RangeError on an invalid IANA name.
-      new Intl.DateTimeFormat("en-US", { timeZone: tz });
+      new Intl.DateTimeFormat("en-US", { timeZone: tz }); // throws on bad name
       return tz;
     }
   } catch {
@@ -127,9 +138,50 @@ export function getBrowserTimeZone(): string {
   }
   return "America/New_York";
 }
+
+// The instant `timeZone`'s wall clock reads `date`/`time`, as a UTC ISO string.
+// Offset trick: interpret the wall-clock as if UTC, see what that instant reads
+// as in `timeZone`, and subtract the resulting offset. Native Intl, no library.
+export function wallClockToUtcIso(date: string, time: string, timeZone: string): string {
+  const [y, mo, d] = date.split("-").map(Number);
+  const [h, mi] = time.split(":").map(Number);
+  const asUtc = Date.UTC(y, mo - 1, d, h, mi);
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(asUtc));
+  const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
+  const zoneAsUtc = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+
+  const offset = zoneAsUtc - asUtc; // ms the zone is ahead of UTC at this instant
+  return new Date(asUtc - offset).toISOString();
+}
+
+// A UTC ISO instant rendered as <input type="date"> / <input type="time">
+// values in `timeZone`. hourCycle "h23" makes midnight "00", never "24".
+export function utcIsoToWallClockParts(startsAt: string, timeZone: string): { date: string; time: string } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(new Date(startsAt));
+  const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
+  const hour = p.hour === "24" ? "00" : p.hour; // belt-and-suspenders
+  return { date: `${p.year}-${p.month}-${p.day}`, time: `${hour}:${p.minute}` };
+}
 ```
 
-Add `timezone` to the `GameFields` type and set it empty in `emptyGame`:
+**Known limitation:** the single-pass offset uses the zone offset at the
+provisional instant, so for the ~1-hour nonexistent/ambiguous wall-clock window
+at a DST transition the result can be off by the DST delta. Acceptable for the
+MVP; a second correction pass is the upgrade path if it ever matters.
+
+### 3. `lib/game-fields.ts` — write path
+
+Add `timezone` to `GameFields` and set it empty in `emptyGame`:
 
 ```ts
 export type GameFields = {
@@ -143,19 +195,35 @@ export const emptyGame: GameFields = {
 };
 ```
 
-`fieldsToRow` uses the field's timezone when present and only falls back to the
-browser zone for new games (where it is empty). Because the edit form always
-carries the game's stored `timezone`, edit never recaptures the editor's zone:
+Resolve the timezone once — the field's value when present (edit), otherwise the
+browser zone (create) — and use it for both the future-start check and
+`starts_at`. No `new Date(`${date}T${time}`)` remains in this file.
 
 ```ts
-// in fieldsToRow's row object
-timezone: fields.timezone.trim() || getBrowserTimeZone(),
+import { getBrowserTimeZone, wallClockToUtcIso } from "@/lib/datetime";
+
+// in validate(), replacing the browser-local startsAt computation:
+const timeZone = fields.timezone.trim() || getBrowserTimeZone();
+const startsAtIso = wallClockToUtcIso(fields.date, fields.time, timeZone);
+const startsAt = new Date(startsAtIso);
+if (Number.isNaN(startsAt.getTime())) {
+  return "The date and time combination is not valid.";
+}
+if (startsAt.getTime() <= Date.now()) {
+  return "The game must start in the future.";
+}
+
+// in fieldsToRow's row object:
+const timeZone = fields.timezone.trim() || getBrowserTimeZone();
+// ...
+timezone: timeZone,
+starts_at: wallClockToUtcIso(fields.date, fields.time, timeZone),
 ```
 
-`getBrowserTimeZone` only resolves to a real zone in the browser; `fieldsToRow`
-is only ever called from the client `GameForm`, so this is safe.
+Because the edit form always carries the game's stored `timezone`, edit reuses
+that zone and never recaptures the editor's — the stored instant is preserved.
 
-### 3. `lib/games.ts` — display path
+### 4. `lib/games.ts` — display path
 
 `GameRow` gains `timezone: string`; `GAME_COLUMNS` adds `timezone`.
 `formatStartsAt` takes the zone and pins both parts to it:
@@ -164,15 +232,10 @@ is only ever called from the client `GameForm`, so this is safe.
 function formatStartsAt(startsAt: string, timeZone: string): string {
   const date = new Date(startsAt);
   const datePart = date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    timeZone,
+    weekday: "short", month: "short", day: "numeric", timeZone,
   });
   const timePart = date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone,
+    hour: "numeric", minute: "2-digit", timeZone,
   });
   return `${datePart} · ${timePart}`;
 }
@@ -182,37 +245,16 @@ function formatStartsAt(startsAt: string, timeZone: string): string {
 `dateTimeDisplay` (`components/game-card.tsx`, `app/games/[id]/page.tsx`) are
 unchanged — they render the now-correct string.
 
-### 4. `app/games/[id]/edit/page.tsx` — edit prefill
+### 5. `app/games/[id]/edit/page.tsx` — edit prefill
 
-Replace the server-TZ `getFullYear()`/`getHours()` extraction with a helper that
-reads the wall-clock parts in the game's stored zone, so the form shows the time
-the creator originally entered. Use `hourCycle: "h23"` so midnight is `00`, never
-`24`, and normalize defensively:
-
-```ts
-function partsInZone(startsAt: string, timeZone: string) {
-  // en-CA gives YYYY-MM-DD; hourCycle "h23" gives 24h HH:mm with midnight as
-  // 00 (not 24) — both match the <input type="date"> / <input type="time">
-  // formats directly.
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
-  }).formatToParts(new Date(startsAt));
-  const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
-  const hour = p.hour === "24" ? "00" : p.hour; // belt-and-suspenders
-  return {
-    date: `${p.year}-${p.month}-${p.day}`,
-    time: `${hour}:${p.minute}`,
-  };
-}
-```
-
-Build `initial` from its result, and carry the game's timezone into the form so a
-re-save preserves it:
+Replace the server-TZ `getFullYear()`/`getHours()` extraction with the shared
+helper, and carry the game's timezone into the form so a re-save preserves both
+the zone and the instant:
 
 ```ts
-const { date, time } = partsInZone(row.starts_at, row.timezone);
+import { utcIsoToWallClockParts } from "@/lib/datetime";
+
+const { date, time } = utcIsoToWallClockParts(row.starts_at, row.timezone);
 const initial: GameFields = {
   // ...existing fields...
   date,
@@ -221,28 +263,39 @@ const initial: GameFields = {
 };
 ```
 
-On save, `GameForm` re-runs `fieldsToRow`, which sees the non-empty
-`fields.timezone` and keeps it — the game's wall-clock and zone both round-trip
-unchanged regardless of where the host is editing from.
+On save, `GameForm` re-runs `validate`/`fieldsToRow`, which resolve the timezone
+from the non-empty `fields.timezone` and convert with `wallClockToUtcIso` in that
+zone — so re-saving without touching the date/time yields the same UTC instant,
+regardless of the host's browser zone.
 
 ## Testing
 
-Unit tests in `lib/game-fields.test.ts` (vitest):
+Unit tests (vitest). Conversion tests live in a new `lib/datetime.test.ts`;
+field-level tests extend `lib/game-fields.test.ts`.
 
+- **`wallClockToUtcIso` — Eastern:** `wallClockToUtcIso("2026-06-25", "09:00",
+  "America/New_York")` equals the instant for 9 AM Eastern (`2026-06-25T13:00:00Z`
+  during EDT).
+- **`wallClockToUtcIso` — zone matters:** the same `"2026-06-25"`/`"09:00"` in
+  `"America/Los_Angeles"` yields a different (3-hours-later) UTC instant than
+  Eastern.
+- **`utcIsoToWallClockParts` — fixed zone:** a known UTC instant maps to the
+  expected `date`/`time` in `"America/New_York"`.
+- **Midnight:** an instant that is local midnight in the target zone returns
+  `time` `"00:00"`, never `"24:00"`.
+- **Edit round-trip:** start from a UTC instant + `"America/New_York"`, convert
+  with `utcIsoToWallClockParts`, convert back with `wallClockToUtcIso` using the
+  same zone — the result equals the original instant.
 - **Create includes a timezone:** `fieldsToRow` on a create-style fixture (empty
   `timezone`) returns a non-empty `timezone` string.
-- **Edit preserves an existing timezone:** `fieldsToRow` on a fixture with
-  `timezone: "America/Los_Angeles"` returns exactly that, regardless of the
-  machine's browser zone.
+- **Edit preserves the timezone:** `fieldsToRow` on a fixture with
+  `timezone: "America/Los_Angeles"` returns exactly that zone and the matching
+  instant, independent of the machine's browser zone.
 - **Display in a fixed zone:** formatting `2026-06-25T13:00:00Z` in
-  `America/New_York` yields a string containing "9:00" (proves the zone, not the
-  runtime, decides the wall-clock).
-- **Midnight prefill:** `partsInZone` (export it or test via a thin wrapper) for
-  an instant that is local midnight in the target zone returns `time` `"00:00"`,
-  never `"24:00"`.
-- **Server-TZ independence:** the display and prefill assertions hold with the
-  process timezone forced to UTC (e.g. running vitest with `TZ=UTC`), confirming
-  the server's zone does not affect the displayed time.
+  `America/New_York` yields a string containing "9:00".
+- **Server-TZ independence:** the conversion, round-trip, and display assertions
+  hold with the process timezone forced to UTC (run vitest with `TZ=UTC`),
+  confirming the runtime's zone does not affect results.
 
 If `formatStartsAt` is not exported, export it or add a thin tested wrapper.
 
@@ -250,7 +303,7 @@ Manual checks (after applying migration 010):
 
 - Create a game at a chosen time; the card and detail page show that same time.
 - Open the edit form; the prefilled date/time match what was entered, including a
-  game set to midnight.
+  game set to midnight; saving without changes leaves the time unchanged.
 - Confirm correctness against a server/browser TZ mismatch (set `TZ=UTC` for the
   dev server, or deploy) — the displayed time no longer drifts.
 
