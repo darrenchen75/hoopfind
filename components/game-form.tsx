@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { field, label, btnPrimary, errorPanel, successPanel } from "@/lib/ui";
+import { field, label, btnPrimary, btnSecondary, errorPanel, successPanel } from "@/lib/ui";
 import {
   emptyGame,
   fieldsToRow,
@@ -320,7 +320,7 @@ export default function GameForm({ mode, gameId, initial }: Props) {
 
         <Link
           href={mode === "edit" ? `/games/${gameId}` : "/dashboard"}
-          className="text-center text-sm font-bold uppercase tracking-wide text-muted transition hover:text-ink"
+          className={btnSecondary}
         >
           Cancel and go back
         </Link>

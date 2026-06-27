@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { btnPrimary, errorPanel } from "@/lib/ui";
+import { btnPrimary, btnSecondary, errorPanel } from "@/lib/ui";
 
 export default function CancelGameButton({ gameId }: { gameId: string }) {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function CancelGameButton({ gameId }: { gameId: string }) {
           type="button"
           onClick={() => setConfirming(false)}
           disabled={pending}
-          className="text-sm font-bold uppercase tracking-wide text-muted transition hover:text-ink"
+          className={btnSecondary}
         >
           Keep game
         </button>

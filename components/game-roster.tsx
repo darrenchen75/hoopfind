@@ -50,7 +50,7 @@ export default function GameRoster({ access, roster, error }: Props) {
                 {entry.displayName}
               </p>
               <div className="shrink-0 text-right">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted">
                   Show-up rate
                 </p>
                 <p className="text-sm font-semibold text-ink">{showUp}</p>
