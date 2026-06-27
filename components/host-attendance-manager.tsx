@@ -34,7 +34,7 @@ function attendanceErrorMessage(message: string | undefined): string {
     : "We couldn't update attendance. Refresh and try again.";
 }
 const baseBtn =
-  "border-2 px-4 py-1.5 text-sm font-bold uppercase tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vermilion disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-11 flex-1 items-center justify-center border-2 px-4 py-1.5 text-sm font-bold uppercase tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vermilion disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none";
 
 export default function HostAttendanceManager({
   gameId,
@@ -101,6 +101,8 @@ export default function HostAttendanceManager({
                   type="button"
                   onClick={() => mark(p.userId, "attended")}
                   disabled={pendingId !== null}
+                  aria-label={`Mark ${p.displayName} as attended`}
+                  aria-pressed={p.status === "attended"}
                   className={`${baseBtn} ${
                     p.status === "attended"
                       ? "border-success bg-success/10 text-success"
@@ -113,6 +115,8 @@ export default function HostAttendanceManager({
                   type="button"
                   onClick={() => mark(p.userId, "missed")}
                   disabled={pendingId !== null}
+                  aria-label={`Mark ${p.displayName} as missed`}
+                  aria-pressed={p.status === "missed"}
                   className={`${baseBtn} ${
                     p.status === "missed"
                       ? "border-vermilion-ink bg-vermilion-ink/10 text-vermilion-ink"
