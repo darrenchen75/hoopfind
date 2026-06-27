@@ -70,7 +70,7 @@ export default async function GameDetailPage({
             ← Back to games
           </Link>
 
-          <div className="mt-6 flex items-start justify-between gap-4">
+          <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
             <h1 className="font-display text-4xl font-bold uppercase leading-tight tracking-tight md:text-5xl">
               {game.title}
             </h1>
@@ -92,6 +92,33 @@ export default async function GameDetailPage({
               Canceled by the host
             </p>
           )}
+
+          {!game.isCanceled && hasStarted && (
+            <p className="mt-4 border-2 border-ink bg-paper px-4 py-2 text-sm font-bold uppercase tracking-wide text-muted">
+              This game has already started
+            </p>
+          )}
+
+          <dl className="mt-8 grid gap-x-6 gap-y-6 border-t border-line pt-8 sm:grid-cols-3">
+            <div>
+              <dt className="text-sm text-muted">Players</dt>
+              <dd className="mt-1 text-lg text-ink">
+                {game.currentPlayers}/{game.maxPlayers}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-sm text-muted">Competitiveness</dt>
+              <dd className="mt-1 text-lg text-ink">{game.competitiveness}</dd>
+            </div>
+
+            <div>
+              <dt className="text-sm text-muted">Desired skill range</dt>
+              <dd className="mt-1 text-lg text-ink">
+                {game.skillRange.min} – {game.skillRange.max}
+              </dd>
+            </div>
+          </dl>
 
           <div className="mt-8 border-2 border-ink bg-paper p-5">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-muted">
@@ -127,43 +154,17 @@ export default async function GameDetailPage({
             </div>
           )}
 
-          <dl className="mt-10 grid gap-x-6 gap-y-6 border-t border-line pt-8 sm:grid-cols-2">
-            <div>
-              <dt className="text-sm text-muted">Players</dt>
-              <dd className="mt-1 text-lg text-ink">
-                {game.currentPlayers}/{game.maxPlayers}
-              </dd>
+          {game.notes && (
+            <div className="mt-8 border-t border-line pt-8">
+              <h2 className="font-display text-sm uppercase text-muted">Notes</h2>
+              <p className="mt-2 text-base leading-7 text-muted">{game.notes}</p>
             </div>
-
-            <div>
-              <dt className="text-sm text-muted">Competitiveness</dt>
-              <dd className="mt-1 text-lg text-ink">
-                {game.competitiveness}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-sm text-muted">Game type</dt>
-              <dd className="mt-1 text-lg text-ink">{game.gameType}</dd>
-            </div>
-
-            <div>
-              <dt className="text-sm text-muted">Desired skill range</dt>
-              <dd className="mt-1 text-lg text-ink">
-                {game.skillRange.min} – {game.skillRange.max}
-              </dd>
-            </div>
-          </dl>
+          )}
 
           <div className="mt-8 border-t border-line pt-8">
-            <h2 className="font-display text-sm uppercase text-muted">Notes</h2>
-            <p className="mt-2 text-base leading-7 text-muted">
-              {game.notes}
-            </p>
-          </div>
-
-          <div className="mt-8 border-t border-line pt-8">
-            <h2 className="font-display text-lg font-semibold uppercase tracking-tight">Player roster</h2>
+            <h2 className="font-display text-lg font-semibold uppercase tracking-tight">
+              Player roster
+            </h2>
             <GameRoster access={rosterAccess} roster={roster} error={rosterError} />
           </div>
 
