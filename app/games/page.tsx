@@ -41,12 +41,10 @@ export default async function GamesPage() {
             We couldn&apos;t load games right now. Please try again later.
           </p>
         ) : games.length === 0 ? (
-          <div className="mt-10">
-            <EmptyState
-              message="No public games yet. Be the first to post a run."
-              cta={{ href: "/games/new", label: "Create a game" }}
-            />
-          </div>
+          <EmptyState
+            message="No public games yet. Be the first to post a run."
+            cta={{ href: "/games/new", label: "Create a game" }}
+          />
         ) : (
           <GamesBrowser items={items} canMatch={canMatch} />
         )}
