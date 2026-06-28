@@ -126,6 +126,7 @@ export default function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirec
             type="password"
             autoComplete={mode === "signup" ? "new-password" : "current-password"}
             required
+            minLength={mode === "signup" ? 6 : undefined}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="••••••••"
