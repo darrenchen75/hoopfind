@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { field, label, btnPrimary, errorPanel, successPanel } from "@/lib/ui";
+import { toSafeMessage } from "@/lib/errors";
 
 type AuthMode = "login" | "signup";
 
@@ -57,7 +58,7 @@ export default function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirec
       const { data, error } = await supabase.auth.signUp({ email, password });
 
       if (error) {
-        setError(error.message);
+        setError(toSafeMessage(error));
         setLoading(false);
         return;
       }
@@ -79,7 +80,7 @@ export default function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirec
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError(error.message);
+      setError(toSafeMessage(error));
       setLoading(false);
       return;
     }

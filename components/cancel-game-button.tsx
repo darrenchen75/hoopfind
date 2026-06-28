@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { btnPrimary, btnSecondary, errorPanel } from "@/lib/ui";
+import { toSafeMessage } from "@/lib/errors";
 
 export default function CancelGameButton({ gameId }: { gameId: string }) {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function CancelGameButton({ gameId }: { gameId: string }) {
       .update({ canceled_at: new Date().toISOString() })
       .eq("id", gameId);
     if (updateError) {
-      setError(updateError.message);
+      setError(toSafeMessage(updateError, "We couldn't cancel the game. Please try again."));
       setPending(false);
       return;
     }
