@@ -43,6 +43,7 @@ export async function fetchGameRoster(
   });
 
   if (error) {
+    console.error("fetchGameRoster", error);
     return { roster: [], error: true };
   }
 
@@ -66,6 +67,7 @@ export async function fetchHostGameParticipants(
   });
 
   if (error) {
+    console.error("fetchHostGameParticipants", error);
     return { participants: [], error: true };
   }
 

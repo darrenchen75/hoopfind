@@ -85,6 +85,7 @@ export async function fetchPublicGames(
   const { data, error } = await query;
 
   if (error) {
+    console.error("fetchPublicGames", error);
     return { games: [], error: true };
   }
 
@@ -122,6 +123,7 @@ export async function fetchCurrentUserJoinedGames(): Promise<{
     .order("starts_at", { ascending: true });
 
   if (error) {
+    console.error("fetchCurrentUserJoinedGames", error);
     return { games: [], error: true };
   }
 
@@ -153,6 +155,7 @@ export async function fetchCurrentUserHostedGames(): Promise<{
     .order("starts_at", { ascending: true });
 
   if (error) {
+    console.error("fetchCurrentUserHostedGames", error);
     return { games: [], error: true };
   }
 
@@ -186,6 +189,7 @@ export async function fetchCurrentUserPastHostedGames(): Promise<{
     .limit(6);
 
   if (error) {
+    console.error("fetchCurrentUserPastHostedGames", error);
     return { games: [], error: true };
   }
 
@@ -220,6 +224,7 @@ export async function fetchCurrentUserPastJoinedGames(): Promise<{
     .eq("user_id", userId);
 
   if (partError) {
+    console.error("fetchCurrentUserPastJoinedGames", partError);
     return { games: [], error: true };
   }
 
@@ -244,6 +249,7 @@ export async function fetchCurrentUserPastJoinedGames(): Promise<{
     .limit(6);
 
   if (error) {
+    console.error("fetchCurrentUserPastJoinedGames", error);
     return { games: [], error: true };
   }
 
