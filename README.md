@@ -79,7 +79,7 @@ npm run lint
 
 ## Demo
 
-Live demo: *(link coming)*
+Live demo: https://hoopfind.vercel.app
 
 <!-- screenshots: dashboard, game detail, roster, attendance manager -->
 
