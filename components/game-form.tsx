@@ -14,6 +14,7 @@ import {
   skillLevels,
   type GameFields,
 } from "@/lib/game-fields";
+import { toSafeMessage } from "@/lib/errors";
 
 type Props = {
   mode: "create" | "edit";
@@ -76,7 +77,7 @@ export default function GameForm({ mode, gameId, initial }: Props) {
         .update(fieldsToRow(fields))
         .eq("id", gameId!);
       if (error) {
-        setError(error.message);
+        setError(toSafeMessage(error, "We couldn't save the game. Please try again."));
         setSaving(false);
         return;
       }
@@ -94,7 +95,7 @@ export default function GameForm({ mode, gameId, initial }: Props) {
       .from("games")
       .insert(fieldsToRow(fields, userId));
     if (error) {
-      setError(error.message);
+      setError(toSafeMessage(error, "We couldn't save the game. Please try again."));
       setSaving(false);
       return;
     }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { HostParticipant } from "@/lib/roster";
 import { errorPanel, note } from "@/lib/ui";
+import { toSafeMessage, ATTENDANCE_SAFE_MESSAGES } from "@/lib/errors";
 
 type Props = {
   gameId: string;
@@ -19,20 +20,6 @@ const statusLabel = {
   missed: "Missed",
 } as const;
 
-const SAFE_ERRORS = new Set([
-  "Authentication required",
-  "Game not found",
-  "Attendance status must be attended or missed",
-  "Only the game creator can update attendance",
-  "Attendance cannot be updated before the game starts",
-  "Participant not found for this game",
-]);
-
-function attendanceErrorMessage(message: string | undefined): string {
-  return message && SAFE_ERRORS.has(message)
-    ? message
-    : "We couldn't update attendance. Refresh and try again.";
-}
 const baseBtn =
   "inline-flex min-h-11 flex-1 items-center justify-center border-2 px-4 py-1.5 text-sm font-bold uppercase tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vermilion disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none";
 
@@ -58,7 +45,13 @@ export default function HostAttendanceManager({
     });
 
     if (rpcError) {
-      setErrorMsg(attendanceErrorMessage(rpcError.message));
+      setErrorMsg(
+        toSafeMessage(
+          rpcError,
+          "We couldn't update attendance. Refresh and try again.",
+          ATTENDANCE_SAFE_MESSAGES,
+        ),
+      );
       setPendingId(null);
       return;
     }

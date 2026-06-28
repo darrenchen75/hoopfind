@@ -66,6 +66,7 @@ export async function getJoinedGameIds(): Promise<JoinedGameIds> {
     .eq("status", "joined");
 
   if (error) {
+    console.error("getJoinedGameIds", error);
     return { isAuthenticated: true, gameIds: [], error: true };
   }
 
@@ -91,6 +92,7 @@ export async function getGameParticipation(
     .maybeSingle();
 
   if (error) {
+    console.error("getGameParticipation", error);
     return { isAuthenticated: true, userId, status: null, error: true };
   }
 
@@ -124,6 +126,7 @@ export async function getCurrentUserAttendanceCounts(): Promise<AttendanceCounts
     .in("status", ["attended", "missed"]);
 
   if (error) {
+    console.error("getCurrentUserAttendanceCounts", error);
     return { attended: 0, missed: 0, error: true };
   }
 

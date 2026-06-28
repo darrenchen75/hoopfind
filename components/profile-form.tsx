@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { field, label, btnPrimary, errorPanel, successPanel } from "@/lib/ui";
+import { toSafeMessage } from "@/lib/errors";
 
 const skillLevels = ["Beginner", "Intermediate", "Advanced", "Elite"];
 const positions = ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"];
@@ -121,7 +122,7 @@ export default function ProfileForm() {
     });
 
     if (error) {
-      setError(error.message);
+      setError(toSafeMessage(error, "We couldn't save your profile. Please try again."));
       setSaving(false);
       return;
     }
