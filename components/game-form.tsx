@@ -95,7 +95,7 @@ export default function GameForm({ mode, gameId, initial }: Props) {
       .from("games")
       .insert(fieldsToRow(fields, userId));
     if (error) {
-      setError(error.message);
+      setError(toSafeMessage(error, "We couldn't save the game. Please try again."));
       setSaving(false);
       return;
     }
