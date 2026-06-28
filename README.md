@@ -79,7 +79,7 @@ npm run lint
 
 ## Demo
 
-Live demo: <!-- add Vercel URL -->
+Live demo: *(link coming)*
 
 <!-- screenshots: dashboard, game detail, roster, attendance manager -->
 
