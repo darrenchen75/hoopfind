@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { ParticipationStatus } from "@/lib/participation";
 import { btnPrimary, errorPanel } from "@/lib/ui";
+import { toSafeMessage, PARTICIPATION_SAFE_MESSAGES } from "@/lib/errors";
 
 const statusLabels: Record<ParticipationStatus, string> = {
   joined: "You're in for this game.",
@@ -49,7 +50,11 @@ export default function GameParticipationButton({
     });
 
     if (rpcError) {
-      setError(rpcError.message);
+      const fallback =
+        action === "join_game"
+          ? "We couldn't join this game. Please try again."
+          : "We couldn't leave this game. Please try again.";
+      setError(toSafeMessage(rpcError, fallback, PARTICIPATION_SAFE_MESSAGES));
       setPending(false);
       return;
     }
