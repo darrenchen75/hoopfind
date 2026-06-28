@@ -54,3 +54,35 @@ npm run build
 npm start
 npm run lint
 ```
+
+## Database & security
+
+- Postgres on Supabase with Row Level Security enabled on every table
+  (`profiles`, `games`, `game_participants`).
+- Sensitive actions like join/leave, roster reads, and attendance updates run
+  through security-definer RPC functions. Game cancellation is protected by RLS
+  policies on the games table.
+- User-facing errors are sanitized to a conservative allowlist; raw database
+  messages are never shown.
+
+## Deploying (Vercel + Supabase)
+
+1. Create a Supabase project and apply the migrations in
+   `supabase/migrations/` (001–010, in order).
+2. In Supabase → Auth → URL Configuration, set the Site URL and Additional
+   Redirect URLs to your local (`http://localhost:3000`) and production
+   (`https://<your-app>.vercel.app`) URLs.
+3. Import the repo into Vercel (framework auto-detected as Next.js).
+4. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+   to the Vercel project's environment variables.
+5. Deploy, then run the smoke test (load `/`, sign up, hit a protected route).
+
+## Demo
+
+Live demo: *(link coming)*
+
+<!-- screenshots: dashboard, game detail, roster, attendance manager -->
+
+Suggested review flow: sign up → complete profile → browse games → create a
+game → join a game → view the roster → (as host) mark attendance → view your
+show-up rate and past games on the dashboard.
