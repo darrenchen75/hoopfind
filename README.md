@@ -53,7 +53,22 @@ Other scripts:
 npm run build
 npm start
 npm run lint
+npm test
 ```
+
+## Testing
+
+Unit tests run on [Vitest](https://vitest.dev):
+
+```bash
+npm test
+```
+
+The suite covers the pure domain logic — skill matching (`lib/match.ts`),
+game validation and field mapping (`lib/game-fields.ts`), browse filters
+(`lib/game-filters.ts`), timezone handling (`lib/datetime.ts`), player
+reliability (`lib/reliability.ts`), and error-message sanitization
+(`lib/errors.ts`).
 
 ## Database & security
 
@@ -81,8 +96,10 @@ npm run lint
 
 Live demo: https://hoopfind.vercel.app
 
-<!-- screenshots: dashboard, game detail, roster, attendance manager -->
-
 Suggested review flow: sign up → complete profile → browse games → create a
 game → join a game → view the roster → (as host) mark attendance → view your
 show-up rate and past games on the dashboard.
+
+## License
+
+[MIT](LICENSE)
